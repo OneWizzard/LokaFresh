@@ -21,7 +21,7 @@
             android:layout_height="48dp"
             android:src="@drawable/baseline_person_24"
             android:layout_marginEnd="12dp"
-            android:tint="@color/green"/>
+            app:tint="@color/green" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -59,7 +59,7 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/baseline_person_24"
-            android:tint="@color/green" />
+            app:tint="@color/green" />
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

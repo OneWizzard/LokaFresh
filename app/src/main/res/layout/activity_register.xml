@@ -60,7 +60,7 @@
         android:layout_width="0dp"
         android:layout_height="48dp"
         android:hint="Masukkan Emailmu"
-        android:drawableStart="@drawable/ic_visibility_off"
+        android:drawableStart="@drawable/eyeoff"
         android:drawablePadding="12dp"
         android:background="@drawable/rounded_edit_text"
         android:paddingStart="16dp"
