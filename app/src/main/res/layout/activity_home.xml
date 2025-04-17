@@ -38,10 +38,13 @@
         android:layout_height="wrap_content"
         android:src="@drawable/baseline_camera_alt_24"
         app:backgroundTint="#26A269"
+        app:tint="@android:color/white"
+        android:contentDescription="Kamera"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="16dp" />
+        android:translationY="30dp"
+        android:elevation="8dp"/>
 
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
