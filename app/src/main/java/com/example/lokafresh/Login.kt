@@ -3,6 +3,7 @@ package com.example.lokafresh
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 
@@ -18,5 +19,12 @@ class Login : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+
+        val txviewRegisterLink = findViewById<TextView>(R.id.registerLink)
+        txviewRegisterLink.setOnClickListener {
+            val intent = Intent(this, Register::class.java)
+            startActivity(intent)
+            finish()
         }
     }
+}
