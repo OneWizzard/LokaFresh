@@ -5,7 +5,8 @@
         android:title="Pesanan" />
     <item
         android:id="@+id/nav_saved"
-        android:title="@+id/camera_button"
+        android:title="Camera"
+
     />
     <item
         android:id="@+id/nav_profile"

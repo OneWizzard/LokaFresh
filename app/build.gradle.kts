@@ -5,6 +5,9 @@ plugins {
 }
 
 android {
+    buildFeatures{
+        viewBinding = true
+    }
     namespace = "com.example.lokafresh"
     compileSdk = 35
 
@@ -41,6 +44,11 @@ android {
 
 dependencies {
 
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.gms.play.services.mlkit.document.scanner)
     dependencies {
         implementation(libs.androidx.core.ktx)
         implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -64,6 +72,16 @@ dependencies {
         implementation(libs.androidx.appcompat)
         implementation(libs.retrofit)
         implementation(libs.converter.gson)
+        implementation(libs.androidx.camera.core)
+        implementation(libs.androidx.camera.camera2)
+        implementation(libs.androidx.camera.lifecycle)
+        implementation(libs.androidx.camera.view)
+        implementation (libs.gms.play.services.mlkit.document.scanner)
+
+
+
+
+
     }
 
 
