@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.lokafresh.response.User
@@ -33,6 +34,12 @@ class Register : AppCompatActivity() {
 
         btnRegister.setOnClickListener {
             registerUser()
+        }
+        val txbacklogin = findViewById<TextView>(R.id.tv_back_to_login)
+        txbacklogin.setOnClickListener {
+            val intent = Intent(this, Login::class.java)
+            startActivity(intent)
+            finish()
         }
     }
     private fun registerUser() {
