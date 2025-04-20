@@ -1,5 +1,6 @@
 package com.example.lokafresh
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -57,6 +58,8 @@ class Register : AppCompatActivity() {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 if (response.isSuccessful) {
                     Toast.makeText(this@Register, "Registrasi Berhasil!", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this@Register, Login::class.java)
+                    startActivity(intent)
                     finish() // kembali ke login atau main activity
                 } else {
                     Toast.makeText(this@Register, "Registrasi Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()
@@ -67,5 +70,6 @@ class Register : AppCompatActivity() {
                 Toast.makeText(this@Register, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
+
     }
 }
