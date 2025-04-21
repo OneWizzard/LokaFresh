@@ -15,25 +15,25 @@ import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.lokafresh.retrofit.ApiService
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.android.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import kotlinx.serialization.Serializable
-import com.google.gson.GsonBuilder
+import kotlinx.serialization.json.Json
+import kotlinx.coroutines.withContext
 
 @Serializable
 data class ChatbotRequest(val prompt: String)
-
 @Serializable
 data class ChatbotResponse(val response: String)
-
+@Serializable
 data class Message(val text: String, val isUser: Boolean)
 
 class ChatbotFragment : Fragment() {
@@ -46,7 +46,11 @@ class ChatbotFragment : Fragment() {
     private lateinit var backButton: ImageButton
     private lateinit var backProgressBar: ProgressBar
 
-    private lateinit var apiService: ApiService
+    private val httpClient = HttpClient(Android) {
+        install(ContentNegotiation) {
+            json(Json { ignoreUnknownKeys = true }) // Konfigurasi JSON
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -74,17 +78,6 @@ class ChatbotFragment : Fragment() {
         setupRecyclerView()
         setupSendMessage()
         setupBackButton()
-
-        // Inisialisasi Retrofit
-        val gson = GsonBuilder()
-            .setLenient()
-            .create()
-
-        val retrofit = Retrofit.Builder()
-            .baseUrl("http://34.143.173.201:8502/")
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
-        apiService = retrofit.create(ApiService::class.java)
     }
 
     private fun setupRecyclerView() {
@@ -112,39 +105,18 @@ class ChatbotFragment : Fragment() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val requestData = ChatbotRequest(prompt = prompt)
+                val response: ChatbotResponse = httpClient.post(API_URL) {
+                    contentType(ContentType.Application.Json)
+                    setBody(requestData)
+                }.body()
 
-                val call = apiService.getChatbotResponse(requestData)
-                call.enqueue(object : Callback<ChatbotResponse> {
-                    override fun onResponse(call: Call<ChatbotResponse>, response: Response<ChatbotResponse>) {
-                        if (response.isSuccessful) {
-                            val chatbotResponse = response.body()
-                            if (chatbotResponse != null) {
-                                withContext(Dispatchers.Main) {
-                                    handleBotResponse(chatbotResponse.response)
-                                }
-                            } else {
-                                withContext(Dispatchers.Main) {
-                                    addMessage("Respon dari server kosong", false)
-                                }
-                            }
-                        } else {
-                            withContext(Dispatchers.Main) {
-                                addMessage("Gagal mendapatkan respon: ${response.message()}", false)
-                            }
-                        }
-                    }
-
-                    override fun onFailure(call: Call<ChatbotResponse>, t: Throwable) {
-                        withContext(Dispatchers.Main) {
-                            addMessage("Terjadi kesalahan jaringan: ${t.message}", false)
-                            t.printStackTrace()
-                        }
-                    }
-                })
+                withContext(Dispatchers.Main) {
+                    handleBotResponse(response.response)
+                }
 
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    addMessage("Terjadi kesalahan saat menghubungi chatbot: ${e.message}", false)
+                    addMessage("Terjadi kesalahan saat menghubungi chatbot.", false)
                     e.printStackTrace()
                 }
             }
@@ -191,6 +163,6 @@ class ChatbotFragment : Fragment() {
     }
 
     companion object {
-        private const val API_URL = "http://34.143.173.201:8502/webhook/"
+        private const val API_URL = "http://34.143.173.201:8502/webhook/receiveprompt"
     }
 }
