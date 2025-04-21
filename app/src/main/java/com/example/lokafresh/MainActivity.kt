@@ -17,7 +17,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlin.math.abs
 
-class MainActivity : AppCompatActivity(), NavigationVisibilityListener { // Implement the top-level interface
+class MainActivity : AppCompatActivity(), NavigationVisibilityListener {
     private val bottomNavigation: BottomNavigationView by lazy { findViewById(R.id.bottom_navigation) }
     private val fabCamera: FloatingActionButton by lazy { findViewById(R.id.fab_camera) }
     private val fabChatbot: FloatingActionButton by lazy { findViewById(R.id.fab_chatbot) }
@@ -59,46 +59,37 @@ class MainActivity : AppCompatActivity(), NavigationVisibilityListener { // Impl
         fabChatbot.setOnTouchListener { view, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    // Simpan posisi awal
                     initialX = view.x
                     initialY = view.y
                     initialTouchX = event.rawX
                     initialTouchY = event.rawY
 
-                    // Animasi skala saat tombol ditekan
                     val scaleDownX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.9f)
                     val scaleDownY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.9f)
-                    scaleDownX.duration = 150
-                    scaleDownY.duration = 150
                     AnimatorSet().apply {
                         playTogether(scaleDownX, scaleDownY)
+                        duration = 150
                         start()
                     }
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    // Hitung perpindahan
                     val dx = event.rawX - initialTouchX
                     val dy = event.rawY - initialTouchY
-
-                    // Update posisi view
                     view.x = initialX + dx
                     view.y = initialY + dy
                     true
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    // Animasi skala kembali saat tombol dilepas atau dibatalkan
                     val scaleUpX = ObjectAnimator.ofFloat(view, "scaleX", 0.9f, 1f)
                     val scaleUpY = ObjectAnimator.ofFloat(view, "scaleY", 0.9f, 1f)
-                    scaleUpX.duration = 150
-                    scaleUpY.duration = 150
                     AnimatorSet().apply {
                         playTogether(scaleUpX, scaleUpY)
-                        interpolator = OvershootInterpolator() // Efek "melenting"
+                        duration = 150
+                        interpolator = OvershootInterpolator()
                         start()
                     }
 
-                    // Jika pergerakan kurang dari threshold, anggap sebagai klik
                     if (abs(event.rawX - initialTouchX) < 10 &&
                         abs(event.rawY - initialTouchY) < 10) {
                         view.performClick()
@@ -110,29 +101,19 @@ class MainActivity : AppCompatActivity(), NavigationVisibilityListener { // Impl
         }
 
         fabChatbot.setOnClickListener {
-            // Animasi tambahan saat FAB diklik dan sebelum fragment diganti
             val rotateOut = ObjectAnimator.ofFloat(fabChatbot, "rotation", 0f, 360f)
-            rotateOut.duration = 300
             val scaleOutX = ObjectAnimator.ofFloat(fabChatbot, "scaleX", 1f, 0f)
             val scaleOutY = ObjectAnimator.ofFloat(fabChatbot, "scaleY", 1f, 0f)
-            scaleOutX.duration = 300
-            scaleOutY.duration = 300
             val fadeOut = ObjectAnimator.ofFloat(fabChatbot, "alpha", 1f, 0f)
-            fadeOut.duration = 300
 
             AnimatorSet().apply {
                 playTogether(rotateOut, scaleOutX, scaleOutY, fadeOut)
+                duration = 300
                 interpolator = AccelerateDecelerateInterpolator()
                 addListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationEnd(animation: Animator) {
-                        // Setelah animasi selesai, ganti fragment
                         replaceFragment(ChatbotFragment())
-
-                        // Reset properti FAB setelah animasi selesai dan fragment diganti (opsional)
-                        fabChatbot.rotation = 0f
-                        fabChatbot.scaleX = 1f
-                        fabChatbot.scaleY = 1f
-                        fabChatbot.alpha = 1f
+                        resetFabAnimation() // Reset FAB setelah fragment diganti
                     }
                 })
                 start()
@@ -140,42 +121,54 @@ class MainActivity : AppCompatActivity(), NavigationVisibilityListener { // Impl
         }
     }
 
+    private fun resetFabAnimation() {
+        fabChatbot.rotation = 0f
+        fabChatbot.scaleX = 1f
+        fabChatbot.scaleY = 1f
+        fabChatbot.alpha = 1f
+    }
+
     private fun setInitialFragment() {
         if (supportFragmentManager.findFragmentById(R.id.fragment_container) == null) {
-            replaceFragment(OrderFragment(), false) // Jangan tambahkan Fragment awal ke back stack
+            replaceFragment(OrderFragment(), false)
         }
     }
 
     private fun replaceFragment(fragment: Fragment, addToBackStack: Boolean = true): Boolean {
-        // Sembunyikan bottom nav jika fragment adalah ChatbotFragment
-        if (fragment is ChatbotFragment) {
-            setNavigationVisibility(false)
-        } else {
-            setNavigationVisibility(true)
-        }
+        // Set visibilitas bottom nav dan FAB berdasarkan fragment yang ditampilkan
+        setNavigationVisibility(fragment !is ChatbotFragment)
 
         val transaction = supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment)
 
         if (addToBackStack) {
-            transaction.addToBackStack(null) // Tambahkan transaksi ke back stack
+            transaction.addToBackStack(null)
         }
 
         transaction.commit()
         return true
     }
 
-    override fun setNavigationVisibility(visible: Boolean) { // Now correctly overrides the interface method
+    fun hideNavigationElements() {
+        bottomNavigation.visibility = View.GONE
+        fabCamera.visibility = View.GONE
+        fabChatbot.visibility = View.GONE
+    }
+
+    override fun setNavigationVisibility(visible: Boolean) {
         bottomNavigation.visibility = if (visible) View.VISIBLE else View.GONE
         fabCamera.visibility = if (visible) View.VISIBLE else View.GONE
         fabChatbot.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
     override fun onBackPressed() {
-        if (supportFragmentManager.backStackEntryCount > 0) {
-            supportFragmentManager.popBackStack()
-        } else {
-            super.onBackPressed() // Panggil implementasi default untuk keluar aplikasi jika back stack kosong
+        // Set visibilitas bottom nav dan FAB kembali sebelum pop back stack
+        if (supportFragmentManager.backStackEntryCount > 1 && supportFragmentManager.getBackStackEntryAt(supportFragmentManager.backStackEntryCount - 1).name == null) {
+            val previousFragment = supportFragmentManager.fragments.lastOrNull()
+            setNavigationVisibility(previousFragment !is ChatbotFragment)
+        } else if (supportFragmentManager.backStackEntryCount == 1) {
+            setNavigationVisibility(true) // Jika kembali dari Chatbot ke fragment awal
         }
+        super.onBackPressed()
     }
 }

@@ -1,5 +1,7 @@
 package com.example.lokafresh.retrofit
 
+import com.example.lokafresh.ChatbotRequest
+import com.example.lokafresh.ChatbotResponse
 import com.example.lokafresh.response.User
 import com.example.lokafresh.response.UsernameCheckResponse
 import com.example.lokafresh.response.UsernameRequest
@@ -30,4 +32,7 @@ interface ApiService {
     // Delete user
     @DELETE("webhook/delete-user")
     fun deleteUser(@Body request: UsernameRequest): Call<Void>
+
+    @POST("webhook/receiveprompt")
+    fun getChatbotResponse(@Body request: ChatbotRequest): Call<ChatbotResponse>
 }
