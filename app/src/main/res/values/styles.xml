@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<style name="CustomBottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView">
+    <item name="itemTextAppearanceActive">@style/BottomNavigationViewActiveItem</item>
+    <item name="itemTextAppearanceInactive">@style/BottomNavigationViewInactiveItem</item>
+</style>
+
+<style name="BottomNavigationViewActiveItem" parent="TextAppearance.AppCompat.Caption">
+<item name="android:textSize">12sp</item> <item name="android:paddingTop">2dp</item> </style>
+
+<style name="BottomNavigationViewInactiveItem" parent="TextAppearance.AppCompat.Caption">
+<item name="android:textSize">12sp</item> <item name="android:paddingTop">2dp</item> </style>
+</resources>
