@@ -2,7 +2,7 @@
 agp = "8.9.1"
 cameraCore = "1.4.2"
 converterGson = "2.11.0"
-converterGsonVersion = "2.11.0)"
+converterGsonVersion = "2.11.0"
 kotlin = "2.0.21"
 coreKtx = "1.10.1"
 junit = "4.13.2"
