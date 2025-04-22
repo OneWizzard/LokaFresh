@@ -1,6 +1,5 @@
 package com.example.lokafresh.retrofit
 
-import com.example.lokafresh.ChatbotRequest
 import com.example.lokafresh.ChatbotResponse
 import com.example.lokafresh.response.User
 import com.example.lokafresh.response.UsernameCheckResponse
@@ -10,6 +9,7 @@ import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface ApiService {
 
@@ -33,6 +33,10 @@ interface ApiService {
     @DELETE("webhook/delete-user")
     fun deleteUser(@Body request: UsernameRequest): Call<Void>
 
-    @POST("webhook/receiveprompt")
-    fun getChatbotResponse(@Body request: ChatbotRequest): Call<ChatbotResponse>
+    @GET("webhook/receiveprompt")
+    fun getChatbotResponse(
+        @Query("key") key: String,
+        @Query("prompt") prompt: String,
+        @Query("nama") nama: String
+    ): Call<ChatbotResponse>
 }
