@@ -1,0 +1,41 @@
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="200dp"
+    android:layout_height="130dp"
+    android:layout_marginEnd="10dp"
+    android:elevation="6dp"
+    android:padding="16dp"
+    android:backgroundTint="#FFFFFF"
+    app:cardCornerRadius="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Take the medicine"
+            android:textColor="#333"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3 times a day"
+            android:textColor="#999"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp"/>
+
+        <ProgressBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:progress="33"
+            android:progressTint="#00B894"
+            android:indeterminate="false" />
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

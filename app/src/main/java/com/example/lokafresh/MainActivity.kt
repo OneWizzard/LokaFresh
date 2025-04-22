@@ -4,9 +4,6 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
-import android.app.Activity.RESULT_OK
-import android.content.Intent
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
@@ -18,36 +15,35 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
-import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.RESULT_FORMAT_JPEG
-import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.RESULT_FORMAT_PDF
-import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.SCANNER_MODE_FULL
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
-import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import kotlin.math.abs
 
 class MainActivity : AppCompatActivity(), NavigationVisibilityListener {
+
     private val bottomNavigation: BottomNavigationView by lazy { findViewById(R.id.bottom_navigation) }
     private val fabCamera: FloatingActionButton by lazy { findViewById(R.id.fab_camera) }
     private val fabChatbot: FloatingActionButton by lazy { findViewById(R.id.fab_chatbot) }
+    private var selectedItemId: Int = R.id.nav_order // Set initial selected item
+
+    private lateinit var scannerLauncher: ActivityResultLauncher<IntentSenderRequest>
+    private val options = GmsDocumentScannerOptions.Builder()
+        .setGalleryImportAllowed(false)
+        .setPageLimit(2)
+        .setResultFormats(GmsDocumentScannerOptions.RESULT_FORMAT_JPEG, GmsDocumentScannerOptions.RESULT_FORMAT_PDF)
+        .setScannerMode(GmsDocumentScannerOptions.SCANNER_MODE_FULL)
+        .build()
+    private val scanner by lazy { GmsDocumentScanning.getClient(options) }
 
     // Variabel untuk melacak posisi drag
     private var initialX = 0f
     private var initialY = 0f
     private var initialTouchX = 0f
     private var initialTouchY = 0f
-
-    private lateinit var scannerLauncher: ActivityResultLauncher<IntentSenderRequest>
-    private val options = GmsDocumentScannerOptions.Builder()
-        .setGalleryImportAllowed(false)
-        .setPageLimit(2)
-        .setResultFormats(RESULT_FORMAT_JPEG, RESULT_FORMAT_PDF)
-        .setScannerMode(SCANNER_MODE_FULL)
-        .build()
-    private val scanner by lazy { GmsDocumentScanning.getClient(options) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,43 +54,34 @@ class MainActivity : AppCompatActivity(), NavigationVisibilityListener {
         setupFloatingActionButton()
         setupAssistiveFab()
         setInitialFragment()
-
-        scannerLauncher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
-            if (result.resultCode == RESULT_OK) {
-                val scanResult = GmsDocumentScanningResult.fromActivityResultIntent(result.data)
-                scanResult?.getPages()?.let { pages ->
-                    for (page in pages) {
-                        val imageUri = page.getImageUri()
-                        Log.d("DocumentScanner", "Scanned Image URI: $imageUri")
-                        // Proses gambar yang dipindai di sini
-                        try {
-                            val inputStream = contentResolver.openInputStream(imageUri)
-                            val bitmap = BitmapFactory.decodeStream(inputStream)
-                            // Lakukan sesuatu dengan bitmap
-                            inputStream?.close()
-                        } catch (e: Exception) {
-                            Log.e("DocumentScanner", "Error loading scanned image: ${e.message}")
-                        }
-                    }
-                }
-                scanResult?.getPdf()?.let { pdf ->
-                    val pdfUri = pdf.getUri()
-                    val pageCount = pdf.getPageCount()
-                    Log.d("DocumentScanner", "Scanned PDF URI: $pdfUri, Page Count: $pageCount")
-                    // Proses PDF yang dipindai di sini
-                }
-            } else {
-                Log.d("DocumentScanner", "Scanning cancelled or failed")
-            }
-        }
+        updateBottomNavigationSelection() // Set initial color
     }
 
     private fun setupBottomNavigation() {
         bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_order -> replaceFragment(OrderFragment())
-                R.id.nav_profile -> replaceFragment(ProfileFragment())
-                else -> false
+            if (item.itemId != selectedItemId) {
+                selectedItemId = item.itemId
+                updateBottomNavigationSelection() // Update warna icon
+                when (item.itemId) {
+                    R.id.nav_order -> replaceFragment(OrderFragment())
+                    R.id.nav_profile -> replaceFragment(ProfileFragment())
+                    else -> false
+                }
+            }
+            true // Pastikan item yang dipilih tetap diproses
+        }
+    }
+
+    private fun updateBottomNavigationSelection() {
+        for (i in 0 until bottomNavigation.menu.size()) {
+            val menuItem = bottomNavigation.menu.getItem(i)
+
+            // Jika item dipilih, beri warna hijau
+            if (menuItem.itemId == selectedItemId) {
+                menuItem.iconTintList = ContextCompat.getColorStateList(this, R.color.green)
+            } else {
+                // Jika item tidak dipilih, beri warna abu-abu
+                menuItem.iconTintList = ContextCompat.getColorStateList(this, android.R.color.darker_gray)
             }
         }
     }
