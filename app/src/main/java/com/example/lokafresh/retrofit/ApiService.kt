@@ -34,7 +34,7 @@ interface ApiService {
     fun deleteUser(@Body request: UsernameRequest): Call<Void>
 
     @GET("webhook/receiveprompt")
-    fun getChatbotResponse(
+    fun ChatbotResponse(
         @Query("key") key: String,
         @Query("prompt") prompt: String,
         @Query("nama") nama: String

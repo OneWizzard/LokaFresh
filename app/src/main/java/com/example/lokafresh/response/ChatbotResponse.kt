@@ -1,5 +1,13 @@
 package com.example.lokafresh.response
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class ChatbotResponse(
-    val response: String // atau field sesuai yang dikembalikan oleh server
-)
+    val responses: List<InnerResponse>
+) {
+    @Serializable
+    data class InnerResponse(
+        val response: String
+    )
+}

@@ -104,10 +104,13 @@ class ChatbotFragment : Fragment() {
     private fun sendPromptToAPI(prompt: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val requestData = ChatbotRequest(prompt = prompt)
-                val response: ChatbotResponse = httpClient.post(API_URL) {
-                    contentType(ContentType.Application.Json)
-                    setBody(requestData)
+                val namaPengguna = "User"
+                val apiKey = "your_api_key"
+
+                val response: ChatbotResponse = httpClient.get(API_URL) {
+                    parameter("key", apiKey)
+                    parameter("prompt", prompt)
+                    parameter("nama", namaPengguna)
                 }.body()
 
                 withContext(Dispatchers.Main) {
@@ -122,7 +125,6 @@ class ChatbotFragment : Fragment() {
             }
         }
     }
-
     private fun handleBotResponse(responseText: String) {
         view?.postDelayed({
             addMessage(responseText, false)
