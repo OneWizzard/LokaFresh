@@ -72,6 +72,7 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.kotlinx.serialization.json)
     implementation (libs.play.services.mlkit.document.scanner)
+    implementation(libs.material.v1120)
 
 }
 

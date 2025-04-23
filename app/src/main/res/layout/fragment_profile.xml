@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white">
 
-    <!-- Background Circle Top -->
+    <!-- Header Background Rounded -->
     <View
         android:id="@+id/bg_circle"
         android:layout_width="match_parent"
-        android:layout_height="500dp"
+        android:layout_height="550dp"
         android:background="@drawable/bg_header_rounded"
         android:translationY="-100dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Profile Greeting -->
+    <!-- Greeting -->
     <TextView
         android:id="@+id/tv_greeting"
         android:layout_width="wrap_content"
@@ -31,11 +32,12 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- Subtext -->
     <TextView
         android:id="@+id/tv_subtext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="There are 3 important things..."
+        android:text="Semangat terus hari ini!."
         android:textSize="14sp"
         android:textColor="@android:color/white"
         android:layout_marginStart="24dp"
@@ -43,31 +45,18 @@
         app:layout_constraintTop_toBottomOf="@id/tv_greeting"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- Profile Image -->
     <ImageView
         android:id="@+id/iv_profile"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:src="@drawable/baseline_person_24"
+        android:tint="#d2f8d2"
         android:background="@drawable/bg_circle_avatar"
         android:scaleType="centerCrop"
         android:layout_marginEnd="24dp"
         android:elevation="3dp"
         app:layout_constraintTop_toTopOf="@id/tv_greeting"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Card Container -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_cards"
-        android:layout_width="0dp"
-        android:layout_height="120dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:clipToPadding="false"
-        android:overScrollMode="never"
-        android:elevation="1dp"
-        android:contentDescription="Card horizontal list"
-        app:layout_constraintTop_toBottomOf="@id/tv_subtext"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Title Today's Plan -->
@@ -79,23 +68,126 @@
         android:textSize="18sp"
         android:textStyle="bold"
         android:textColor="@android:color/white"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="90dp"
         android:layout_marginStart="16dp"
         android:elevation="2dp"
-        app:layout_constraintTop_toBottomOf="@id/rv_cards"
+        app:layout_constraintTop_toBottomOf="@id/tv_subtext"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- List Plan -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_today_plan"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:padding="16dp"
-        android:elevation="1dp"
-        android:contentDescription="Today's plan vertical list"
+    <!-- Horizontal ScrollView with Cards -->
+    <HorizontalScrollView
+        android:id="@+id/card_container_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:overScrollMode="never"
+        android:scrollbars="none"
         app:layout_constraintTop_toBottomOf="@id/tv_today_plan"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <!-- Card: Jumlah Pesanan -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_jumlah_pesanan"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="@android:color/white"
+                app:strokeWidth="4dp"
+                app:strokeColor="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:src="@drawable/baseline_business_center_24"
+                        android:background="@drawable/bg_circle_light"
+                        android:padding="6dp"
+                        android:layout_gravity="start" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Jumlah Pesanan"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="@color/green"
+                        android:layout_marginTop="8dp" />
+
+                    <TextView
+                        android:id="@+id/tv_jumlah_pesanan"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="12"
+                        android:textSize="24sp"
+                        android:textColor="@color/green"
+                        android:textStyle="bold"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card: Sudah Diantar -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_sudah_diantar"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="@android:color/white"
+                app:strokeWidth="4dp"
+                app:strokeColor="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:src="@drawable/checks"
+                        android:background="@drawable/bg_circle_light"
+                        android:padding="6dp"
+                        android:layout_gravity="start"
+                        android:tint="@color/green" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sudah Diantar"
+                        android:textStyle="bold"
+                        android:textColor="@color/green"
+                        android:textSize="14sp"
+                        android:layout_marginTop="8dp" />
+
+                    <TextView
+                        android:id="@+id/tv_sudah_diantar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="7"
+                        android:textSize="24sp"
+                        android:textColor="@color/green"
+                        android:textStyle="bold"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </HorizontalScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,25 +1,28 @@
-package com.example.lokafresh
-
 import android.app.Activity.RESULT_OK
-import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.Fragment
 import com.example.lokafresh.databinding.FragmentCameraBinding
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.tasks.Task
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.RESULT_FORMAT_JPEG
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.RESULT_FORMAT_PDF
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.SCANNER_MODE_FULL
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
+import java.util.*
 
 class CameraFragment : Fragment() {
 
@@ -35,6 +38,7 @@ class CameraFragment : Fragment() {
         .build()
 
     private val scanner by lazy { GmsDocumentScanning.getClient(options) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         scannerLauncher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
@@ -46,9 +50,17 @@ class CameraFragment : Fragment() {
                         Log.d("DocumentScanner", "Scanned Image URI: $imageUri")
                         // Process the image URI here
                         try {
+                            Log.d("DocumentScanner", "Opening input stream for URI: $imageUri")
                             val inputStream = requireContext().contentResolver.openInputStream(imageUri)
                             val bitmap = BitmapFactory.decodeStream(inputStream)
-                            // Do something with the bitmap
+
+                            Log.d("DocumentScanner", "Bitmap decoding berhasil, mulai encode ke Base64")
+                            val base64String = encodeBitmapToBase64(bitmap)
+
+                            Log.d("DocumentScanner", "Encode ke Base64 berhasil, hasilnya (terpotong): ${base64String.take(100)}...")
+
+                            // TODO: Gunakan base64String sesuai kebutuhanmu
+
                             inputStream?.close()
                         } catch (e: Exception) {
                             Log.e("DocumentScanner", "Error loading scanned image: ${e.message}")
@@ -93,6 +105,15 @@ class CameraFragment : Fragment() {
                 Log.e("DocumentScanner", "Error starting scan intent: ${e.message}")
             }
     }
+
+    // Function to encode Bitmap to Base64
+    private fun encodeBitmapToBase64(bitmap: Bitmap): String {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+        val byteArray = byteArrayOutputStream.toByteArray()
+        return Base64.encodeToString(byteArray, Base64.DEFAULT)
+    }
+
 
 
     override fun onDestroyView() {

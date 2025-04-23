@@ -6,9 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <!-- Fragment Container -->
-
-    <!-- Bottom Navigation -->
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
@@ -24,35 +21,31 @@
         android:layout_alignParentBottom="true"
         android:background="@drawable/bg_bottom_nav_rounded"
         android:elevation="10dp"
-    app:menu="@menu/bottom_nav_menu"
-    app:labelVisibilityMode="labeled"
-    app:itemIconTint="@drawable/bottom_nav_item_tint"
-    android:layout_marginTop="2dp" />
-
-
+        app:itemIconTint="@drawable/bottom_nav_item_tint"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu"
+        android:layout_marginTop="2dp" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_camera"
         android:layout_width="70dp"
         android:layout_height="70dp"
-        android:layout_centerHorizontal="true"
         android:layout_above="@id/bottom_navigation"
-        android:layout_marginBottom="-30dp" android:src="@drawable/baseline_camera_alt_24"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="-30dp"
         android:contentDescription="Kamera"
+        android:src="@drawable/baseline_camera_alt_24"
         app:backgroundTint="@color/green"
         app:elevation="8dp"
-        app:fabCustomSize="70dp" app:maxImageSize="38dp" />
-
-
-
-    <!-- Progress Bar -->
-    <ProgressBar
-        android:id="@+id/progress_bar"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_centerInParent="true"
-        android:visibility="gone"
-        android:indeterminate="true" />
+        app:fabCustomSize="70dp"
+        app:maxImageSize="38dp"
+        app:tint="@android:color/white" /> <ProgressBar
+    android:id="@+id/progress_bar"
+    android:layout_width="50dp"
+    android:layout_height="50dp"
+    android:layout_centerInParent="true"
+    android:indeterminate="true"
+    android:visibility="gone" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_chatbot"
@@ -62,13 +55,13 @@
         android:layout_alignParentBottom="true"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="100dp"
-        android:src="@drawable/tanyaloka"
         android:contentDescription="Chatbot"
+        android:src="@drawable/tanyaloka"
         app:backgroundTint="@color/green"
         app:elevation="10dp"
         app:fabSize="normal"
-        app:useCompatPadding="true"
         app:maxImageSize="60dp"
+        app:useCompatPadding="true"
+        app:tint="@null"
         android:gravity="center" />
-
-</RelativeLayout> 
+    /> </RelativeLayout>

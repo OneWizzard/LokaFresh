@@ -1,5 +1,6 @@
 package com.example.lokafresh
 
+import CameraFragment
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
@@ -30,14 +31,7 @@ class MainActivity : AppCompatActivity(), NavigationVisibilityListener {
     private val fabChatbot: FloatingActionButton by lazy { findViewById(R.id.fab_chatbot) }
     private var selectedItemId: Int = R.id.nav_order // Set initial selected item
 
-    private lateinit var scannerLauncher: ActivityResultLauncher<IntentSenderRequest>
-    private val options = GmsDocumentScannerOptions.Builder()
-        .setGalleryImportAllowed(false)
-        .setPageLimit(2)
-        .setResultFormats(GmsDocumentScannerOptions.RESULT_FORMAT_JPEG, GmsDocumentScannerOptions.RESULT_FORMAT_PDF)
-        .setScannerMode(GmsDocumentScannerOptions.SCANNER_MODE_FULL)
-        .build()
-    private val scanner by lazy { GmsDocumentScanning.getClient(options) }
+
 
     // Variabel untuk melacak posisi drag
     private var initialX = 0f
@@ -92,17 +86,6 @@ class MainActivity : AppCompatActivity(), NavigationVisibilityListener {
         }
     }
 
-    private fun startDocumentScan() {
-        scanner.getStartScanIntent(this)
-            .addOnSuccessListener { intentSender ->
-                val intentSenderRequest = IntentSenderRequest.Builder(intentSender).build()
-                scannerLauncher.launch(intentSenderRequest)
-            }
-            .addOnFailureListener { e ->
-                Log.e("DocumentScanner", "Error starting scan intent: ${e.message}")
-                // Handle error
-            }
-    }
 
     private fun setupAssistiveFab() {
         fabChatbot.setOnTouchListener { view, event ->
