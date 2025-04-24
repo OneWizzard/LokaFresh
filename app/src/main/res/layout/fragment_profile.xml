@@ -51,13 +51,13 @@
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:src="@drawable/baseline_person_24"
-        android:tint="#d2f8d2"
         android:background="@drawable/bg_circle_avatar"
         android:scaleType="centerCrop"
         android:layout_marginEnd="24dp"
         android:elevation="3dp"
         app:layout_constraintTop_toTopOf="@id/tv_greeting"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="#d2f8d2" />
 
     <!-- Title Today's Plan -->
     <TextView
@@ -164,7 +164,7 @@
                         android:background="@drawable/bg_circle_light"
                         android:padding="6dp"
                         android:layout_gravity="start"
-                        android:tint="@color/green" />
+                        app:tint="@color/green" />
 
                     <TextView
                         android:layout_width="wrap_content"
