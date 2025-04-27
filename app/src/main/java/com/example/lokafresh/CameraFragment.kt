@@ -1,4 +1,7 @@
+package com.example.lokafresh
+
 import android.app.Activity.RESULT_OK
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -7,22 +10,20 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.fragment.app.Fragment
 import com.example.lokafresh.databinding.FragmentCameraBinding
-import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.tasks.Task
+import com.example.lokafresh.retrofit.ApiConfig
+import com.example.lokafresh.retrofit.Base64Data
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
-import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.RESULT_FORMAT_JPEG
-import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.RESULT_FORMAT_PDF
-import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.SCANNER_MODE_FULL
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.ByteArrayOutputStream
-import java.io.InputStream
-import java.util.*
 
 class CameraFragment : Fragment() {
 
@@ -33,14 +34,18 @@ class CameraFragment : Fragment() {
     private val options = GmsDocumentScannerOptions.Builder()
         .setGalleryImportAllowed(false)
         .setPageLimit(2)
-        .setResultFormats(RESULT_FORMAT_JPEG, RESULT_FORMAT_PDF)
-        .setScannerMode(SCANNER_MODE_FULL)
+        .setResultFormats(
+            GmsDocumentScannerOptions.RESULT_FORMAT_JPEG,
+            GmsDocumentScannerOptions.RESULT_FORMAT_PDF
+        )
+        .setScannerMode(GmsDocumentScannerOptions.SCANNER_MODE_FULL)
         .build()
 
     private val scanner by lazy { GmsDocumentScanning.getClient(options) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         scannerLauncher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
                 val scanResult = GmsDocumentScanningResult.fromActivityResultIntent(result.data)
@@ -48,18 +53,15 @@ class CameraFragment : Fragment() {
                     for (page in pages) {
                         val imageUri = page.getImageUri()
                         Log.d("DocumentScanner", "Scanned Image URI: $imageUri")
-                        // Process the image URI here
                         try {
-                            Log.d("DocumentScanner", "Opening input stream for URI: $imageUri")
                             val inputStream = requireContext().contentResolver.openInputStream(imageUri)
                             val bitmap = BitmapFactory.decodeStream(inputStream)
 
-                            Log.d("DocumentScanner", "Bitmap decoding berhasil, mulai encode ke Base64")
                             val base64String = encodeBitmapToBase64(bitmap)
 
-                            Log.d("DocumentScanner", "Encode ke Base64 berhasil, hasilnya (terpotong): ${base64String.take(100)}...")
+                            Log.d("DocumentScanner", "Encoded Base64: ${base64String.take(100)}...")
 
-                            // TODO: Gunakan base64String sesuai kebutuhanmu
+                            sendScanToBackend(base64String)
 
                             inputStream?.close()
                         } catch (e: Exception) {
@@ -67,23 +69,29 @@ class CameraFragment : Fragment() {
                         }
                     }
                 }
+
                 scanResult?.getPdf()?.let { pdf ->
                     val pdfUri = pdf.getUri()
                     val pageCount = pdf.getPageCount()
                     Log.d("DocumentScanner", "Scanned PDF URI: $pdfUri, Page Count: $pageCount")
-                    // Process the PDF URI here
                 }
+
+                // ✅ Setelah selesai scanning, balik ke OrderFragment
+                moveToOrderFragment()
+
             } else {
                 Log.d("DocumentScanner", "Scanning cancelled or failed")
+
+                // ✅ Kalau gagal/cancel scanning, juga balik ke OrderFragment
+                moveToOrderFragment()
             }
         }
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
+        inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentCameraBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -97,7 +105,6 @@ class CameraFragment : Fragment() {
         Log.d("CameraFragment", "startDocumentScan called")
         scanner.getStartScanIntent(requireActivity())
             .addOnSuccessListener { intentSender ->
-                Log.d("CameraFragment", "Launching scan intent")
                 val intentSenderRequest = IntentSenderRequest.Builder(intentSender).build()
                 scannerLauncher.launch(intentSenderRequest)
             }
@@ -106,7 +113,6 @@ class CameraFragment : Fragment() {
             }
     }
 
-    // Function to encode Bitmap to Base64
     private fun encodeBitmapToBase64(bitmap: Bitmap): String {
         val byteArrayOutputStream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
@@ -114,7 +120,44 @@ class CameraFragment : Fragment() {
         return Base64.encodeToString(byteArray, Base64.DEFAULT)
     }
 
+    private fun sendScanToBackend(base64String: String) {
+        val apiService = ApiConfig.getApiService()
 
+        // Ambil username dari SharedPreferences
+        val sharedPreferences = requireContext().getSharedPreferences("user_session", Context.MODE_PRIVATE)
+        val username = sharedPreferences.getString("fullname", "Pengguna")
+
+        if (username == null) {
+            Log.e("DocumentScanner", "Username tidak ditemukan di SharedPreferences")
+            return
+        }
+
+        val base64Data = Base64Data(
+            picture = base64String,
+            nama = username
+        )
+
+        apiService.uploadScan(base64Data)
+            .enqueue(object : Callback<Void> {
+                override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                    if (response.isSuccessful) {
+                        Log.d("DocumentScanner", "Scan uploaded successfully.")
+                    } else {
+                        Log.e("DocumentScanner", "Failed to upload scan: ${response.message()}")
+                    }
+                }
+
+                override fun onFailure(call: Call<Void>, t: Throwable) {
+                    Log.e("DocumentScanner", "Error uploading scan: ${t.message}")
+                }
+            })
+    }
+
+    private fun moveToOrderFragment() {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, OrderFragment()) // Ganti fragment_container sesuai ID container kamu
+            .commit()
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

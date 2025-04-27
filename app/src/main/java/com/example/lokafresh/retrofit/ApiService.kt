@@ -33,6 +33,10 @@ interface ApiService {
     @DELETE("webhook/delete-user")
     fun deleteUser(@Body request: UsernameRequest): Call<Void>
 
+    @POST("webhook-test/api1")
+    fun uploadScan(@Body base64Data: Base64Data): Call<Void>
+
+
     @GET("webhook/receiveprompt")
     fun ChatbotResponse(
         @Query("key") key: String,

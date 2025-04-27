@@ -73,6 +73,11 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation (libs.play.services.mlkit.document.scanner)
     implementation(libs.material.v1120)
+    implementation (libs.play.services.mlkit.barcode.scanning)
+    implementation (libs.androidx.camera.core.v130)
+    implementation (libs.androidx.camera.camera2.v130)
+    implementation (libs.androidx.camera.lifecycle)
+    implementation (libs.androidx.camera.view.v130)
 
 }
 
