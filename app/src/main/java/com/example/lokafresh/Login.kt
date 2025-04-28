@@ -13,6 +13,8 @@ import com.example.lokafresh.retrofit.ApiConfig
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
 
 class Login : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,12 +36,15 @@ class Login : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            // Hash the password using SHA-256
+            val hashedPassword = hashPassword(passwordInput)
+
             val apiService = ApiConfig.getApiService()
             apiService.getUserData().enqueue(object : Callback<List<User>> {
                 override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
                     if (response.isSuccessful && response.body() != null) {
                         val userList = response.body()
-                        val user = userList?.find { it.username == usernameInput && it.password == passwordInput }
+                        val user = userList?.find { it.username == usernameInput && it.password == hashedPassword }
 
                         if (user != null) {
                             val editor = sharedPreferences.edit()
@@ -63,12 +68,34 @@ class Login : AppCompatActivity() {
             })
         }
 
-
         val txviewRegisterLink = findViewById<TextView>(R.id.registerLink)
         txviewRegisterLink.setOnClickListener {
             val intent = Intent(this, Register::class.java)
             startActivity(intent)
             finish()
         }
+    }
+
+    // Function to hash the password using SHA-256
+    fun hashPassword(password: String): String {
+        try {
+            val digest = MessageDigest.getInstance("SHA-256")
+            val hashedBytes = digest.digest(password.toByteArray())
+            return bytesToHex(hashedBytes)
+        } catch (e: NoSuchAlgorithmException) {
+            e.printStackTrace()
+            return ""
+        }
+    }
+
+    // Convert bytes to Hex
+    fun bytesToHex(bytes: ByteArray): String {
+        val hexString = StringBuilder()
+        for (byte in bytes) {
+            val hex = Integer.toHexString(0xff and byte.toInt())
+            if (hex.length == 1) hexString.append('0')
+            hexString.append(hex)
+        }
+        return hexString.toString()
     }
 }

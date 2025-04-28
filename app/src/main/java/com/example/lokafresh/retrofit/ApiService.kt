@@ -1,6 +1,7 @@
 package com.example.lokafresh.retrofit
 
-import com.example.lokafresh.ChatbotResponse
+import com.example.lokafresh.response.ChatbotRequest
+import com.example.lokafresh.response.ChatbotResponse
 import com.example.lokafresh.response.User
 import com.example.lokafresh.response.UsernameCheckResponse
 import com.example.lokafresh.response.UsernameRequest
@@ -36,11 +37,8 @@ interface ApiService {
     @POST("webhook-test/api1")
     fun uploadScan(@Body base64Data: Base64Data): Call<Void>
 
+    @POST("webhook/receiveprompt")
+    fun getChatbotResponse(@Body request: ChatbotRequest): Call<List<ChatbotResponse>>
 
-    @GET("webhook/receiveprompt")
-    fun ChatbotResponse(
-        @Query("key") key: String,
-        @Query("prompt") prompt: String,
-        @Query("nama") nama: String
-    ): Call<ChatbotResponse>
-}
+    }
+

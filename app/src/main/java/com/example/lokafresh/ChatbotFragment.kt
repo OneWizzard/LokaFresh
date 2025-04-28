@@ -1,170 +1,142 @@
 package com.example.lokafresh
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.engine.android.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.coroutines.withContext
-
-@Serializable
-data class ChatbotRequest(val prompt: String)
-@Serializable
-data class ChatbotResponse(val response: String)
-@Serializable
-data class Message(val text: String, val isUser: Boolean)
+import com.example.lokafresh.databinding.FragmentChatbotBinding
+import com.example.lokafresh.response.ChatbotRequest
+import com.example.lokafresh.response.ChatbotResponse
+import com.example.lokafresh.response.Message
+import com.example.lokafresh.retrofit.ApiConfig
+import com.example.lokafresh.retrofit.ApiService
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class ChatbotFragment : Fragment() {
-    private var navListener: NavigationVisibilityListener? = null
-    private lateinit var chatRecyclerView: RecyclerView
+
+    private lateinit var apiService: ApiService
+    private var _binding: FragmentChatbotBinding? = null
+    private val binding get() = _binding!!
     private lateinit var chatInput: EditText
     private lateinit var sendButton: ImageButton
-    private val messageList = mutableListOf<Message>()
+    private lateinit var progressBar: ProgressBar
+    private lateinit var chatRecyclerView: RecyclerView
     private lateinit var chatAdapter: ChatAdapter
-    private lateinit var backButton: ImageButton
-    private lateinit var backProgressBar: ProgressBar
-
-    private val httpClient = HttpClient(Android) {
-        install(ContentNegotiation) {
-            json(Json { ignoreUnknownKeys = true }) // Konfigurasi JSON
-        }
-    }
+    private var messageList = mutableListOf<Message>()
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
+        inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.fragment_chatbot, container, false)
-        chatRecyclerView = view.findViewById(R.id.chat_recycler_view)
-        chatInput = view.findViewById(R.id.chat_input)
-        sendButton = view.findViewById(R.id.send_button)
-        backButton = view.findViewById(R.id.back_button)
-        backProgressBar = view.findViewById(R.id.back_progress_bar)
-        return view
-    }
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        if (context is NavigationVisibilityListener) {
-            navListener = context
-        }
+    ): View {
+        _binding = FragmentChatbotBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupRecyclerView()
-        setupSendMessage()
-        setupBackButton()
-    }
 
-    private fun setupRecyclerView() {
+        // Initialize views using binding
+        val chatInput = binding.chatInput
+        val sendButton = binding.sendButton
+        val progressBar = binding.backProgressBar
+        val chatRecyclerView = binding.chatRecyclerView
+        val backButton = binding.backButton
+
+        // Set up RecyclerView and Adapter
         chatAdapter = ChatAdapter(messageList)
         chatRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         chatRecyclerView.adapter = chatAdapter
-    }
-
-    private fun setupSendMessage() {
-        sendButton.setOnClickListener {
-            val messageText = chatInput.text.toString().trim()
-            if (messageText.isNotEmpty()) {
-                addMessage(messageText, true)
-                chatInput.text.clear()
-
-                val imm = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.hideSoftInputFromWindow(chatInput.windowToken, 0)
-
-                sendPromptToAPI(messageText)
-            }
-        }
-    }
-
-    private fun sendPromptToAPI(prompt: String) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val namaPengguna = "User"
-                val apiKey = "your_api_key"
-
-                val response: ChatbotResponse = httpClient.get(API_URL) {
-                    parameter("key", apiKey)
-                    parameter("prompt", prompt)
-                    parameter("nama", namaPengguna)
-                }.body()
-
-                withContext(Dispatchers.Main) {
-                    handleBotResponse(response.response)
-                }
-
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    addMessage("Terjadi kesalahan saat menghubungi chatbot.", false)
-                    e.printStackTrace()
-                }
-            }
-        }
-    }
-    private fun handleBotResponse(responseText: String) {
-        view?.postDelayed({
-            addMessage(responseText, false)
-        }, 1000)
-    }
-
-    private fun addMessage(text: String, isUser: Boolean) {
-        messageList.add(Message(text, isUser))
-        chatAdapter.notifyItemInserted(messageList.size - 1)
         chatRecyclerView.scrollToPosition(messageList.size - 1)
-    }
 
-    private fun setupBackButton() {
+        // Initialize ApiService
+        apiService = ApiConfig.getApiService()
+
+        // Set up listeners
         backButton.setOnClickListener {
-            backProgressBar.visibility = View.VISIBLE
-            (activity as? MainActivity)?.hideNavigationElements()
-            Handler(Looper.getMainLooper()).postDelayed({
-                val intent = Intent(requireContext(), MainActivity::class.java)
-                startActivity(intent)
-                requireActivity().finish()
-            }, 500)
+            navigateToOrderFragment()
+        }
+
+        sendButton.setOnClickListener {
+            sendMessageToChatbot(chatInput, progressBar, chatRecyclerView)
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        navListener?.setNavigationVisibility(false)
+    private fun navigateToOrderFragment() {
+        binding.backProgressBar.visibility = View.VISIBLE
+        requireActivity().supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, OrderFragment())
+            .commitNow() // Gunakan commitNow untuk memastikan transaksi selesai sebelum fragment dihancurkan
+        binding.backProgressBar.visibility = View.GONE
     }
 
-    override fun onPause() {
-        super.onPause()
-        navListener?.setNavigationVisibility(true)
+    private fun sendMessageToChatbot(
+        chatInput: EditText,
+        progressBar: ProgressBar,
+        chatRecyclerView: RecyclerView
+    ) {
+        val message = chatInput.text.toString().trim()
+
+        Log.d("ChatbotFragment", "Sending message: $message")
+
+        if (message.isNotBlank()) {
+            progressBar.visibility = View.VISIBLE
+
+            val userMessage = Message(text = message, isUser = true)
+            messageList.add(userMessage)
+            chatAdapter.notifyItemInserted(messageList.size - 1)
+            chatRecyclerView.smoothScrollToPosition(messageList.size - 1)
+            chatInput.text.clear()
+
+            val sharedPreferences = requireContext().getSharedPreferences("user_session", Context.MODE_PRIVATE)
+            val username = sharedPreferences.getString("fullname", "Pengguna") ?: "Pengguna"
+
+            Log.d("ChatbotFragment", "Username: $username")
+
+            val request = ChatbotRequest(prompt = message, username = username)
+            Log.d("ChatbotFragment", "Request body: prompt = ${request.prompt}, username = ${request.username}")
+
+            apiService.getChatbotResponse(request).enqueue(object : Callback<List<ChatbotResponse>> {
+                override fun onResponse(call: Call<List<ChatbotResponse>>, response: Response<List<ChatbotResponse>>) {
+                    progressBar.visibility = View.GONE
+                    if (response.isSuccessful) {
+                        Log.d("ChatbotFragment", "API Response: ${response.body()}")
+                        val chatbotResponse = response.body()?.get(0)
+                        if (chatbotResponse != null) {
+                            val botMessage = Message(text = chatbotResponse.output, isUser = false)
+                            messageList.add(botMessage)
+                            chatAdapter.notifyItemInserted(messageList.size - 1)
+                            chatRecyclerView.smoothScrollToPosition(messageList.size - 1)
+                        }
+                    } else {
+                        Log.e("ChatbotFragment", "Error response: ${response.code()} - ${response.message()}")
+                        Toast.makeText(requireContext(), "Failed to get response", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<List<ChatbotResponse>>, t: Throwable) {
+                    progressBar.visibility = View.GONE
+                    Log.e("ChatbotFragment", "API Call failed: ${t.message}")
+                    Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+        } else {
+            Log.d("ChatbotFragment", "Message input is empty")
+        }
     }
 
-    override fun onDetach() {
-        navListener = null
-        super.onDetach()
-    }
-
-    companion object {
-        private const val API_URL = "http://34.143.173.201:8502/webhook/receiveprompt"
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

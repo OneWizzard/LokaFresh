@@ -3,7 +3,8 @@ package com.example.lokafresh.response
 data class User(
     val username: String,
     val password: String,
-    val fullname: String
+    val fullname: String,
+    val email: String
 )
 
 data class UsernameRequest(

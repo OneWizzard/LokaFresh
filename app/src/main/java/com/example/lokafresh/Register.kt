@@ -12,6 +12,8 @@ import com.example.lokafresh.retrofit.ApiConfig
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
 
 class Register : AppCompatActivity() {
     private lateinit var etUsername: EditText
@@ -35,30 +37,45 @@ class Register : AppCompatActivity() {
         btnRegister.setOnClickListener {
             registerUser()
         }
-        val txbacklogin = findViewById<TextView>(R.id.tv_back_to_login)
-        txbacklogin.setOnClickListener {
+
+        val txBackToLogin = findViewById<TextView>(R.id.tv_back_to_login)
+        txBackToLogin.setOnClickListener {
             val intent = Intent(this, Login::class.java)
             startActivity(intent)
             finish()
         }
     }
+
     private fun registerUser() {
         val username = etUsername.text.toString().trim()
         val password = etPassword.text.toString().trim()
         val confirmPassword = etConfirmPassword.text.toString().trim()
+        val email = etEmail.text.toString().trim()
         val fullname = etFullname.text.toString().trim()
 
-        if (username.isEmpty() || password.isEmpty() || fullname.isEmpty()) {
+        if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || email.isEmpty() || fullname.isEmpty()) {
             Toast.makeText(this, "Semua data harus diisi!", Toast.LENGTH_SHORT).show()
             return
         }
 
         if (password != confirmPassword) {
-            Toast.makeText(this, "Password tidak cocok!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Password dan Konfirmasi Password tidak cocok!", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val user = User(username = username, password = password, fullname = fullname)
+        if (!isPasswordValid(password)) {
+            Toast.makeText(this, "Password harus minimal 8 karakter, mengandung huruf besar, huruf kecil, angka, dan karakter spesial.", Toast.LENGTH_LONG).show()
+            return
+        }
+
+        val hashedPassword = hashPassword(password)
+
+        val user = User(
+            username = username,
+            password = hashedPassword,
+            fullname = fullname,
+            email = email // pastikan model User kamu ada field email juga!
+        )
 
         val client = ApiConfig.getApiService().createUser(user)
         client.enqueue(object : Callback<Void> {
@@ -67,7 +84,7 @@ class Register : AppCompatActivity() {
                     Toast.makeText(this@Register, "Registrasi Berhasil!", Toast.LENGTH_SHORT).show()
                     val intent = Intent(this@Register, Login::class.java)
                     startActivity(intent)
-                    finish() // kembali ke login atau main activity
+                    finish()
                 } else {
                     Toast.makeText(this@Register, "Registrasi Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
@@ -77,6 +94,32 @@ class Register : AppCompatActivity() {
                 Toast.makeText(this@Register, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
+    }
 
+    private fun hashPassword(password: String): String {
+        return try {
+            val digest = MessageDigest.getInstance("SHA-256")
+            val hashedBytes = digest.digest(password.toByteArray())
+            bytesToHex(hashedBytes)
+        } catch (e: NoSuchAlgorithmException) {
+            e.printStackTrace()
+            ""
+        }
+    }
+
+    private fun bytesToHex(bytes: ByteArray): String {
+        val hexString = StringBuilder()
+        for (byte in bytes) {
+            val hex = Integer.toHexString(0xff and byte.toInt())
+            if (hex.length == 1) hexString.append('0')
+            hexString.append(hex)
+        }
+        return hexString.toString()
+    }
+
+    private fun isPasswordValid(password: String): Boolean {
+        // Harus ada 1 huruf kecil, 1 huruf besar, 1 angka, 1 special character, minimal 8 karakter
+        val passwordPattern = """^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@\$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"""
+        return password.matches(passwordPattern.toRegex())
     }
 }

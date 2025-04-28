@@ -1,13 +1,17 @@
 package com.example.lokafresh.response
 
-import kotlinx.serialization.Serializable
-
-@Serializable
 data class ChatbotResponse(
-    val responses: List<InnerResponse>
-) {
-    @Serializable
-    data class InnerResponse(
-        val response: String
-    )
-}
+    val output: String
+)
+
+data class Message(
+    val text: String,
+    val isUser: Boolean
+)
+
+
+data class ChatbotRequest(
+    val prompt: String,
+    val username: String
+)
+

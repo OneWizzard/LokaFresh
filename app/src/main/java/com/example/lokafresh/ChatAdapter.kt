@@ -1,10 +1,10 @@
 package com.example.lokafresh
-
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.lokafresh.response.Message
 
 class ChatAdapter(private val messageList: List<Message>) :
     RecyclerView.Adapter<ChatAdapter.MessageViewHolder>() {
