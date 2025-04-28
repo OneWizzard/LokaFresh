@@ -23,12 +23,12 @@ class Login : AppCompatActivity() {
         setContentView(R.layout.activity_login)
 
         val btnLogin = findViewById<Button>(R.id.btn_login)
-        val emailEditText = findViewById<EditText>(R.id.email)
+        val usernameEditText = findViewById<EditText>(R.id.username)
         val passwordEditText = findViewById<EditText>(R.id.password)
         val sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE)
 
         btnLogin.setOnClickListener {
-            val usernameInput = emailEditText.text.toString().trim()
+            val usernameInput = usernameEditText.text.toString().trim()
             val passwordInput = passwordEditText.text.toString().trim()
 
             if (usernameInput.isEmpty() || passwordInput.isEmpty()) {
