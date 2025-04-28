@@ -73,11 +73,7 @@ class ChatbotFragment : Fragment() {
     }
 
     private fun navigateToOrderFragment() {
-        binding.backProgressBar.visibility = View.VISIBLE
-        requireActivity().supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, OrderFragment())
-            .commitNow() // Gunakan commitNow untuk memastikan transaksi selesai sebelum fragment dihancurkan
-        binding.backProgressBar.visibility = View.GONE
+        requireActivity().onBackPressedDispatcher.onBackPressed()
     }
 
     private fun sendMessageToChatbot(

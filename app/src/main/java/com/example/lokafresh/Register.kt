@@ -119,7 +119,7 @@ class Register : AppCompatActivity() {
 
     private fun isPasswordValid(password: String): Boolean {
         // Harus ada 1 huruf kecil, 1 huruf besar, 1 angka, 1 special character, minimal 8 karakter
-        val passwordPattern = """^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@\$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"""
+        val passwordPattern = """^(?=\S{8,})(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$%^&*()_\-+=\[{\]};:'",<.>/?\\|`~])[A-Za-z\d!@#\$%^&*()_\-+=\[{\]};:'",<.>/?\\|`~]+$"""
         return password.matches(passwordPattern.toRegex())
     }
 }

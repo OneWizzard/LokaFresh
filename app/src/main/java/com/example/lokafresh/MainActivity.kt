@@ -5,22 +5,16 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.os.Bundle
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
-import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
 import kotlin.math.abs
 
 class MainActivity : AppCompatActivity(), NavigationVisibilityListener {
@@ -193,13 +187,15 @@ class MainActivity : AppCompatActivity(), NavigationVisibilityListener {
     }
 
     override fun onBackPressed() {
-        // Set visibilitas bottom nav dan FAB kembali sebelum pop back stack
-        if (supportFragmentManager.backStackEntryCount > 1 && supportFragmentManager.getBackStackEntryAt(supportFragmentManager.backStackEntryCount - 1).name == null) {
-            val previousFragment = supportFragmentManager.fragments.lastOrNull()
-            setNavigationVisibility(previousFragment !is ChatbotFragment)
-        } else if (supportFragmentManager.backStackEntryCount == 1) {
-            setNavigationVisibility(true) // Jika kembali dari Chatbot ke fragment awal
-        }
         super.onBackPressed()
+
+        val currentFragment = supportFragmentManager.primaryNavigationFragment?.childFragmentManager?.fragments?.firstOrNull { it.isVisible }
+            ?: supportFragmentManager.fragments.firstOrNull { it.isVisible }
+
+        if (currentFragment != null) {
+            setNavigationVisibility(currentFragment !is ChatbotFragment)
+        } else {
+            setNavigationVisibility(true)
+        }
     }
 }
