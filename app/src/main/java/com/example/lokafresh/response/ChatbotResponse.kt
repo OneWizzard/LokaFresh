@@ -1,7 +1,11 @@
 package com.example.lokafresh.response
 
+import com.google.gson.annotations.SerializedName
+
+
 data class ChatbotResponse(
-    val output: String
+    @SerializedName("message")
+    val output: String?
 )
 
 data class Message(

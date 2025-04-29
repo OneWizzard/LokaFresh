@@ -95,37 +95,40 @@ class ChatbotFragment : Fragment() {
             chatInput.text.clear()
 
             val sharedPreferences = requireContext().getSharedPreferences("user_session", Context.MODE_PRIVATE)
-            val username = sharedPreferences.getString("fullname", "Pengguna") ?: "Pengguna"
+            val username = sharedPreferences.getString("username", "Pengguna") ?: "Pengguna"
 
             Log.d("ChatbotFragment", "Username: $username")
 
             val request = ChatbotRequest(prompt = message, username = username)
             Log.d("ChatbotFragment", "Request body: prompt = ${request.prompt}, username = ${request.username}")
 
-            apiService.getChatbotResponse(request).enqueue(object : Callback<List<ChatbotResponse>> {
-                override fun onResponse(call: Call<List<ChatbotResponse>>, response: Response<List<ChatbotResponse>>) {
-                    progressBar.visibility = View.GONE
+            apiService.getChatbotResponse(request).enqueue(object : Callback<ChatbotResponse> {
+                override fun onResponse(call: Call<ChatbotResponse>, response: Response<ChatbotResponse>) {
+                    binding.backProgressBar.visibility = View.GONE // Sesuai kode kamu (bukan progressBar biasa)
                     if (response.isSuccessful) {
                         Log.d("ChatbotFragment", "API Response: ${response.body()}")
-                        val chatbotResponse = response.body()?.get(0)
+                        val chatbotResponse = response.body() // Tidak pakai get(0) lagi, langsung body
                         if (chatbotResponse != null) {
-                            val botMessage = Message(text = chatbotResponse.output, isUser = false)
+                            val outputText = chatbotResponse.output ?: "Maaf, saya tidak mengerti."
+                            val botMessage = Message(text = outputText, isUser = false)
                             messageList.add(botMessage)
                             chatAdapter.notifyItemInserted(messageList.size - 1)
-                            chatRecyclerView.smoothScrollToPosition(messageList.size - 1)
+                            binding.chatRecyclerView.smoothScrollToPosition(messageList.size - 1)
                         }
+
                     } else {
                         Log.e("ChatbotFragment", "Error response: ${response.code()} - ${response.message()}")
                         Toast.makeText(requireContext(), "Failed to get response", Toast.LENGTH_SHORT).show()
                     }
                 }
 
-                override fun onFailure(call: Call<List<ChatbotResponse>>, t: Throwable) {
-                    progressBar.visibility = View.GONE
+                override fun onFailure(call: Call<ChatbotResponse>, t: Throwable) {
+                    binding.backProgressBar.visibility = View.GONE
                     Log.e("ChatbotFragment", "API Call failed: ${t.message}")
                     Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })
+
         } else {
             Log.d("ChatbotFragment", "Message input is empty")
         }

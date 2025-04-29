@@ -48,7 +48,7 @@ class Login : AppCompatActivity() {
 
                         if (user != null) {
                             val editor = sharedPreferences.edit()
-                            editor.putString("fullname", user.fullname)
+                            editor.putString("username", user.username)
                             editor.apply()
                             Toast.makeText(this@Login, "Login berhasil! Selamat datang, ${user.fullname}", Toast.LENGTH_SHORT).show()
                             val intent = Intent(this@Login, MainActivity::class.java)
