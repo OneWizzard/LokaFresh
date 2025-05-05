@@ -39,7 +39,9 @@
         app:elevation="8dp"
         app:fabCustomSize="70dp"
         app:maxImageSize="38dp"
-        app:tint="@android:color/white" /> <ProgressBar
+        app:tint="@android:color/white" />
+
+    <ProgressBar
     android:id="@+id/progress_bar"
     android:layout_width="50dp"
     android:layout_height="50dp"
@@ -64,4 +66,4 @@
         app:useCompatPadding="true"
         app:tint="@null"
         android:gravity="center" />
-    /> </RelativeLayout>
+</RelativeLayout>

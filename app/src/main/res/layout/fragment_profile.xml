@@ -189,5 +189,22 @@
 
         </LinearLayout>
     </HorizontalScrollView>
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_logout"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="25dp"
+        android:contentDescription="LogOut"
+        android:src="@drawable/baseline_logout_24"
+        app:backgroundTint="@color/red"
+        app:elevation="10dp"
+        app:fabSize="normal"
+        app:maxImageSize="35dp"
+        app:useCompatPadding="true"
+        app:tint="@color/white"
+        android:gravity="center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

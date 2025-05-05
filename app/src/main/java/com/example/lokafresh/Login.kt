@@ -26,6 +26,15 @@ class Login : AppCompatActivity() {
         val usernameEditText = findViewById<EditText>(R.id.username)
         val passwordEditText = findViewById<EditText>(R.id.password)
         val sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE)
+        val savedUsername = sharedPreferences.getString("username", null)
+
+        // Jika user sudah login sebelumnya
+        if (savedUsername != null) {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()
+            return
+        }
 
         btnLogin.setOnClickListener {
             val usernameInput = usernameEditText.text.toString().trim()
@@ -49,6 +58,7 @@ class Login : AppCompatActivity() {
                         if (user != null) {
                             val editor = sharedPreferences.edit()
                             editor.putString("username", user.username)
+                            editor.putString("fullname", user.fullname)
                             editor.apply()
                             Toast.makeText(this@Login, "Login berhasil! Selamat datang, ${user.fullname}", Toast.LENGTH_SHORT).show()
                             val intent = Intent(this@Login, MainActivity::class.java)

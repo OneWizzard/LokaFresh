@@ -1,12 +1,14 @@
 package com.example.lokafresh
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class ProfileFragment : Fragment() {
 
@@ -24,6 +26,16 @@ class ProfileFragment : Fragment() {
         val greetingTextView = view.findViewById<TextView>(R.id.tv_greeting)
         greetingTextView.text = "Hi, $fullname"
 
+        val logoutButton = view.findViewById<FloatingActionButton>(R.id.fab_logout)
+        logoutButton.setOnClickListener {
+            // Clear SharedPreferences
+            sharedPreferences.edit().clear().apply()
+
+            // Arahkan ke LoginActivity
+            val intent = Intent(requireContext(), Login::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+        }
         return view
     }
 }
