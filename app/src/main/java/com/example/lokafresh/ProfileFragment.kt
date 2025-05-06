@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import androidx.appcompat.app.AlertDialog
 
 class ProfileFragment : Fragment() {
 
@@ -28,14 +29,27 @@ class ProfileFragment : Fragment() {
 
         val logoutButton = view.findViewById<FloatingActionButton>(R.id.fab_logout)
         logoutButton.setOnClickListener {
-            // Clear SharedPreferences
-            sharedPreferences.edit().clear().apply()
+            // Konfirmasi logout
+            val builder = AlertDialog.Builder(requireContext())
+            builder.setMessage("Apakah Anda yakin ingin logout?")
+                .setCancelable(false)
+                .setPositiveButton("Yes") { dialog, id ->
+                    // Clear SharedPreferences
+                    sharedPreferences.edit().clear().apply()
 
-            // Arahkan ke LoginActivity
-            val intent = Intent(requireContext(), Login::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
+                    // Arahkan ke LoginActivity
+                    val intent = Intent(requireContext(), Login::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                }
+                .setNegativeButton("No") { dialog, id ->
+                    dialog.dismiss() // Membatalkan logout
+                }
+
+            val alert = builder.create()
+            alert.show()
         }
+
         return view
     }
 }
