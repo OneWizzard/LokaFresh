@@ -15,6 +15,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
+import kotlin.math.log
 
 class Login : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,6 +36,13 @@ class Login : AppCompatActivity() {
             finish()
             return
         }
+
+        val tvLoginAdmin = findViewById<TextView>(R.id.tv_loginadmin)
+        tvLoginAdmin.setOnClickListener {
+            val intent = Intent(this, LoginAsAdmin::class.java)
+            startActivity(intent)
+        }
+
 
         btnLogin.setOnClickListener {
             val usernameInput = usernameEditText.text.toString().trim()
