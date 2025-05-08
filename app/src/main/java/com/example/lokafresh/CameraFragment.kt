@@ -16,11 +16,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.example.lokafresh.databinding.FragmentCameraBinding
 import com.example.lokafresh.retrofit.ApiConfig
-import com.example.lokafresh.retrofit.Base64Data
 import com.example.lokafresh.retrofit.ImageListRequest
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -34,7 +34,7 @@ class CameraFragment : Fragment() {
     private lateinit var scannerLauncher: ActivityResultLauncher<IntentSenderRequest>
     private val options = GmsDocumentScannerOptions.Builder()
         .setGalleryImportAllowed(false)
-        .setPageLimit(2)
+        .setPageLimit(5)  // Ambil hingga 5 halaman jika diperlukan
         .setResultFormats(
             GmsDocumentScannerOptions.RESULT_FORMAT_JPEG,
             GmsDocumentScannerOptions.RESULT_FORMAT_PDF
@@ -51,40 +51,30 @@ class CameraFragment : Fragment() {
             if (result.resultCode == RESULT_OK) {
                 val scanResult = GmsDocumentScanningResult.fromActivityResultIntent(result.data)
                 scanResult?.getPages()?.let { pages ->
+                    val pageBitmaps = mutableListOf<Bitmap>()
                     for (page in pages) {
                         val imageUri = page.getImageUri()
                         Log.d("DocumentScanner", "Scanned Image URI: $imageUri")
                         try {
                             val inputStream = requireContext().contentResolver.openInputStream(imageUri)
                             val bitmap = BitmapFactory.decodeStream(inputStream)
-
-                            val base64String = encodeBitmapToBase64(bitmap)
-
-                            Log.d("DocumentScanner", "Encoded Base64: ${base64String.take(100)}...")
-
-                            sendScanToBackend(base64String)
-
+                            pageBitmaps.add(bitmap)
                             inputStream?.close()
                         } catch (e: Exception) {
                             Log.e("DocumentScanner", "Error loading scanned image: ${e.message}")
                         }
                     }
+
+                    // Kirim gambar-gambar yang dipindai ke backend
+                    sendScanToBackend(pageBitmaps)
+
+                    // Setelah selesai scanning, balik ke OrderFragment
+                    moveToOrderFragment()
+
                 }
-
-                scanResult?.getPdf()?.let { pdf ->
-                    val pdfUri = pdf.getUri()
-                    val pageCount = pdf.getPageCount()
-                    Log.d("DocumentScanner", "Scanned PDF URI: $pdfUri, Page Count: $pageCount")
-                }
-
-                // ✅ Setelah selesai scanning, balik ke OrderFragment
-                moveToOrderFragment()
-
             } else {
                 Log.d("DocumentScanner", "Scanning cancelled or failed")
-
-                // ✅ Kalau gagal/cancel scanning, juga balik ke OrderFragment
-                moveToOrderFragment()
+                moveToOrderFragment() // Kalau gagal/cancel scanning, juga balik ke OrderFragment
             }
         }
     }
@@ -121,34 +111,46 @@ class CameraFragment : Fragment() {
         return Base64.encodeToString(byteArray, Base64.DEFAULT)
     }
 
-    private fun sendScanToBackend(base64String: String) {
+    private fun sendScanToBackend(pages: List<Bitmap>) {
         val apiService = ApiConfig.getApiService()
 
         // Ambil username dari SharedPreferences
         val sharedPreferences = requireContext().getSharedPreferences("user_session", Context.MODE_PRIVATE)
-        val username = sharedPreferences.getString("fullname", "Pengguna")
+        val username = sharedPreferences.getString("fullname", null)
 
         if (username == null) {
             Log.e("DocumentScanner", "Username tidak ditemukan di SharedPreferences")
             return
         }
 
+        // Mengonversi setiap halaman gambar menjadi Base64 dan mengumpulkannya dalam list
+        val base64Images = pages.map { pageBitmap ->
+            encodeBitmapToBase64(pageBitmap)
+        }
+
+        // Membungkus list base64 dalam request body
         val imageListRequest = ImageListRequest(
-            imgs = listOf(base64String) // bungkus base64String jadi list
+            imgs = base64Images // List base64 string gambar
         )
 
         apiService.uploadScan(imageListRequest)
-            .enqueue(object : Callback<Void> {
-                override fun onResponse(call: Call<Void>, response: Response<Void>) {
+            .enqueue(object : Callback<ResponseBody> {
+                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                     if (response.isSuccessful) {
-                        Log.d("DocumentScanner", "Scan uploaded successfully.")
+                        val responseBody = response.body()?.string()
+                        Log.d("DocumentScanner", "Scan uploaded successfully. Response: $responseBody")
                     } else {
-                        Log.e("DocumentScanner", "Failed to upload scan: ${response.message()}")
+                        val errorBody = response.errorBody()?.string()
+                        Log.e("DocumentScanner", "Failed to upload scan: $errorBody")
+                        // Tambahkan log status code untuk debugging
+                        Log.e("DocumentScanner", "Response Code: ${response.code()}")
                     }
                 }
 
-                override fun onFailure(call: Call<Void>, t: Throwable) {
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                     Log.e("DocumentScanner", "Error uploading scan: ${t.message}")
+                    // Tambahkan log exception lengkap untuk debugging
+                    Log.e("DocumentScanner", "Error details:", t)
                 }
             })
 

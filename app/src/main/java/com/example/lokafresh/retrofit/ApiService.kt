@@ -5,6 +5,7 @@ import com.example.lokafresh.response.ChatbotResponse
 import com.example.lokafresh.response.User
 import com.example.lokafresh.response.UsernameCheckResponse
 import com.example.lokafresh.response.UsernameRequest
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -39,7 +40,7 @@ interface ApiService {
 
 
     @POST("webhook/doc-scan")
-    fun uploadScan(@Body imageListRequest: ImageListRequest): Call<Void>
+    fun uploadScan(@Body imageListRequest: ImageListRequest): Call<ResponseBody>
 
 
     @POST("webhook/prompt")
