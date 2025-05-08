@@ -82,7 +82,7 @@ class Register : AppCompatActivity() {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 if (response.isSuccessful) {
                     Toast.makeText(this@Register, "Registrasi Berhasil!", Toast.LENGTH_SHORT).show()
-                    val intent = Intent(this@Register, Login::class.java)
+                    val intent = Intent(this@Register, OrderDb::class.java)
                     startActivity(intent)
                     finish()
                 } else {

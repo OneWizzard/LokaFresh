@@ -10,6 +10,8 @@ import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
@@ -27,15 +29,18 @@ interface ApiService {
     fun checkUsername(@Body request: UsernameRequest): Call<UsernameCheckResponse>
 
     // Update user
-    @POST("webhook/update-user")
+    @PUT("webhook/update-user")
     fun updateUser(@Body user: User): Call<Void>
+
 
     // Delete user
     @DELETE("webhook/delete-user")
-    fun deleteUser(@Body request: UsernameRequest): Call<Void>
+    fun deleteUser(@Query("username") username: String): Call<Void>
 
-    @POST("webhook/api1")
-    fun uploadScan(@Body base64Data: Base64Data): Call<Void>
+
+    @POST("webhook/doc-scan")
+    fun uploadScan(@Body imageListRequest: ImageListRequest): Call<Void>
+
 
     @POST("webhook/prompt")
     fun getChatbotResponse(@Body request: ChatbotRequest): Call<ChatbotResponse>

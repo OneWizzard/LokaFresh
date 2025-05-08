@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment
 import com.example.lokafresh.databinding.FragmentCameraBinding
 import com.example.lokafresh.retrofit.ApiConfig
 import com.example.lokafresh.retrofit.Base64Data
+import com.example.lokafresh.retrofit.ImageListRequest
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
@@ -132,12 +133,11 @@ class CameraFragment : Fragment() {
             return
         }
 
-        val base64Data = Base64Data(
-            picture = base64String,
-            nama = username
+        val imageListRequest = ImageListRequest(
+            imgs = listOf(base64String) // bungkus base64String jadi list
         )
 
-        apiService.uploadScan(base64Data)
+        apiService.uploadScan(imageListRequest)
             .enqueue(object : Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
                     if (response.isSuccessful) {
@@ -151,6 +151,7 @@ class CameraFragment : Fragment() {
                     Log.e("DocumentScanner", "Error uploading scan: ${t.message}")
                 }
             })
+
     }
 
     private fun moveToOrderFragment() {
