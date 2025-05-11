@@ -1,19 +1,9 @@
 package com.example.lokafresh.retrofit
 
-import com.example.lokafresh.response.ChatbotRequest
-import com.example.lokafresh.response.ChatbotResponse
-import com.example.lokafresh.response.User
-import com.example.lokafresh.response.UsernameCheckResponse
-import com.example.lokafresh.response.UsernameRequest
+import com.example.lokafresh.response.*
 import okhttp3.ResponseBody
 import retrofit2.Call
-import retrofit2.http.Body
-import retrofit2.http.DELETE
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.PUT
-import retrofit2.http.Path
-import retrofit2.http.Query
+import retrofit2.http.*
 
 interface ApiService {
 
@@ -33,18 +23,36 @@ interface ApiService {
     @PUT("webhook/update-user")
     fun updateUser(@Body user: User): Call<Void>
 
-
     // Delete user
     @DELETE("webhook/delete-user")
     fun deleteUser(@Query("username") username: String): Call<Void>
 
-
+    // Upload scanned document
     @POST("webhook/doc-scan")
     fun uploadScan(@Body imageListRequest: ImageListRequest): Call<ResponseBody>
 
-
+    // Chatbot prompt
     @POST("webhook/prompt")
     fun getChatbotResponse(@Body request: ChatbotRequest): Call<ChatbotResponse>
 
-    }
 
+    // =======================
+    // DO (Delivery Order) Endpoints
+    // =======================
+
+    @POST("webhook/check-do")
+    fun checkDo(@Body request: OrderIdRequest): Call<GenericResponse>
+
+    @GET("webhook/get-all-data")
+    fun getDoData(): Call<List<DoData>>
+
+
+    @POST("webhook/create-do")
+    fun createDo(@Body request: CreateDoRequest): Call<GenericResponse>
+
+    @DELETE("webhook/delete-do")
+    fun deleteDo(@Query("order_id") orderId: String): Call<GenericResponse>
+
+    @PUT("webhook/update-do")
+    fun updateDo(@Body request: UpdateDoRequest): Call<GenericResponse>
+}
