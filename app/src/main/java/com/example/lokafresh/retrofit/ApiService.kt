@@ -55,4 +55,12 @@ interface ApiService {
 
     @PUT("webhook/update-do")
     fun updateDo(@Body request: UpdateDoRequest): Call<GenericResponse>
+
+
+    //==========================
+    //STORE ENDPOINTS
+    //==========================
+
+    @GET("webhook/get-all-store-data")
+    fun getAllStoreData(): Call<List<StoreData>>
 }

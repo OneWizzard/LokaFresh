@@ -1,5 +1,5 @@
 package com.example.lokafresh.response
-
+import com.google.gson.annotations.SerializedName
 data class User(
     val username: String,
     val password: String,
@@ -53,4 +53,10 @@ data class DoData(
     val destination: String,
     val delivered: Boolean,
     val date: String
+)
+data class StoreData(
+    @SerializedName("id")
+    val id: Int,
+    val nama: String
+
 )

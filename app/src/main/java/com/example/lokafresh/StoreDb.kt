@@ -5,55 +5,60 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.lokafresh.response.StoreData
+import com.example.lokafresh.retrofit.ApiConfig
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [StoreDb.newInstance] factory method to
- * create an instance of this fragment.
- */
 class StoreDb : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var storeAdapter: StoreAdapter
+    private var storeList = mutableListOf<StoreData>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_store_db, container, false)
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment StoreDb.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            StoreDb().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        recyclerView = view.findViewById(R.id.rvStores)
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        storeAdapter = StoreAdapter(storeList,
+            onUpdateClick = { store -> /* TODO: Implement update */ },
+            onDeleteClick = { store -> deleteStore(store.id) }
+        )
+        recyclerView.adapter = storeAdapter
+
+        fetchStores()
+    }
+
+    private fun fetchStores() {
+        val client = ApiConfig.getApiService().getAllStoreData()
+        client.enqueue(object : Callback<List<StoreData>> {
+            override fun onResponse(call: Call<List<StoreData>>, response: Response<List<StoreData>>) {
+                if (response.isSuccessful) {
+                    storeList.clear()
+                    response.body()?.let { storeList.addAll(it) }
+                    storeAdapter.notifyDataSetChanged()
                 }
             }
+
+            override fun onFailure(call: Call<List<StoreData>>, t: Throwable) {
+                Toast.makeText(requireContext(), "Failed to fetch store data", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun deleteStore(id: Int) {
+        // TODO: Panggil endpoint delete di sini
+        Toast.makeText(requireContext(), "Delete store with ID $id", Toast.LENGTH_SHORT).show()
     }
 }
