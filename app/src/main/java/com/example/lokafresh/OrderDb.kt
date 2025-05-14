@@ -143,7 +143,7 @@ class OrderDb : Fragment() {
                         order_number = orderNumber,
                         username = username,
                         destination = storeId,
-                        delivered = false
+                        delivered = 0
                     )
 
                     apiService.createDo(request).enqueue(object : Callback<GenericResponse> {
@@ -183,7 +183,7 @@ class OrderDb : Fragment() {
             order_number = order.order_number,
             username = order.username,
             destination = order.destination,
-            delivered = !order.delivered,
+            delivered = order.delivered,
             date = "2025-05-11"
         )
         apiService.updateDo(request).enqueue(object : Callback<GenericResponse> {

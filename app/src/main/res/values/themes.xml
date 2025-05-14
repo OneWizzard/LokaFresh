@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.LokaFresh" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Warna utama -->
+        <item name="colorPrimary">@color/green</item>
+        <item name="colorPrimaryVariant">@color/green</item> <!-- Optional -->
+        <item name="colorOnPrimary">@color/white</item>
 
+        <!-- Status bar putih -->
+        <item name="android:statusBarColor">@android:color/white</item>
+        <item name="android:navigationBarColor">@android:color/white</item>
+
+        <!-- Ikon status bar (jam, sinyal, dll.) warna gelap -->
+        <item name="android:windowLightStatusBar">true</item>
+
+        <!-- Tambahan jika ingin background putih menyeluruh -->
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
 </resources>

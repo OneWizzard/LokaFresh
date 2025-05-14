@@ -25,7 +25,7 @@ data class CreateDoRequest(
     val order_number: String,
     val username: String,
     val destination: String,
-    val delivered: Boolean
+    val delivered: Int // ← sebelumnya Boolean
 )
 
 data class UpdateDoRequest(
@@ -33,9 +33,10 @@ data class UpdateDoRequest(
     val order_number: String,
     val username: String,
     val destination: String,
-    val delivered: Boolean,
+    val delivered: Int, // ← sebelumnya Boolean
     val date: String
 )
+
 
 data class GenericResponse(
     val success: Boolean,
@@ -51,7 +52,7 @@ data class DoData(
     val order_number: String,
     val username: String,
     val destination: String,
-    val delivered: Boolean,
+    val delivered: Int,
     val date: String
 )
 data class StoreData(

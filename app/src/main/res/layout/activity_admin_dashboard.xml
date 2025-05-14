@@ -7,31 +7,30 @@
     android:layout_height="match_parent"
     tools:context=".AdminDashboard">
 
-    <!-- Konten utama pakai ConstraintLayout -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="16dp"
-        android:background="@color/white">
+        android:background="@color/white"
+        android:fitsSystemWindows="true">
 
+        <!-- Header -->
         <LinearLayout
             android:id="@+id/header"
             android:layout_width="match_parent"
             android:layout_height="222dp"
-            android:background="@drawable/bg_header_rounded"
             android:orientation="vertical"
             android:gravity="center"
+            android:fitsSystemWindows="true"
             app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
-                android:layout_width="180dp"
-                android:layout_height="180dp"
-                android:src="@drawable/logoputih" />
+                android:layout_width="300dp"
+                android:layout_height="200dp"
+                android:src="@drawable/logo" />
         </LinearLayout>
-        <!-- Judul -->
 
-
-        <!-- Tempat fragment tampil -->
+        <!-- Fragment Container -->
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/fragment_container_view"
             android:name="androidx.fragment.app.Fragment"
@@ -43,6 +42,18 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp" />
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <!-- Bottom Navigation -->
         <com.google.android.material.bottomnavigation.BottomNavigationView

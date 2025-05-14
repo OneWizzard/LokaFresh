@@ -14,8 +14,4 @@
         <item name="android:textSize">12sp</item>
         <item name="android:paddingTop">2dp</item>
     </style>
-
-    <style name="Theme.LokaFresh" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <item name="colorPrimary">@color/green</item>
-    </style>
 </resources>
