@@ -5,6 +5,15 @@
     android:layout_height="match_parent"
     android:background="@color/white">
 
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_marginTop="32dp"
+        android:src="@drawable/logo"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
     <LinearLayout
         android:id="@+id/form_container"
         android:layout_width="0dp"

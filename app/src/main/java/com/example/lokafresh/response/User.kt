@@ -58,6 +58,7 @@ data class DoData(
 data class StoreData(
     @SerializedName("id")
     val id: Int,
-    val nama: String
+    val nama: String,
+    val link: String
 
 )

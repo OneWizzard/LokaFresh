@@ -1,15 +1,16 @@
 package com.example.lokafresh
 
+import android.app.AlertDialog
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.widget.EditText
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lokafresh.response.StoreData
 import com.example.lokafresh.retrofit.ApiConfig
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -31,11 +32,17 @@ class StoreDb : Fragment() {
         recyclerView = view.findViewById(R.id.rvStores)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        storeAdapter = StoreAdapter(storeList,
-            onUpdateClick = { store -> /* TODO: Implement update */ },
+        storeAdapter = StoreAdapter(
+            storeList,
+            onUpdateClick = { store -> showStoreDialog(isUpdate = true, store = store) },
             onDeleteClick = { store -> deleteStore(store.id) }
         )
         recyclerView.adapter = storeAdapter
+
+        val fab = view.findViewById<View>(R.id.fabAddStore)
+        fab.setOnClickListener {
+            showStoreDialog()
+        }
 
         fetchStores()
     }
@@ -48,17 +55,96 @@ class StoreDb : Fragment() {
                     storeList.clear()
                     response.body()?.let { storeList.addAll(it) }
                     storeAdapter.notifyDataSetChanged()
+                } else {
+                    Toast.makeText(requireContext(), "Gagal mengambil data", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<List<StoreData>>, t: Throwable) {
-                Toast.makeText(requireContext(), "Failed to fetch store data", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }
 
-    private fun deleteStore(id: Int) {
-        // TODO: Panggil endpoint delete di sini
-        Toast.makeText(requireContext(), "Delete store with ID $id", Toast.LENGTH_SHORT).show()
+    private fun showStoreDialog(isUpdate: Boolean = false, store: StoreData? = null) {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_store_input, null)
+        val etNama = dialogView.findViewById<EditText>(R.id.etNama)
+        val etLink = dialogView.findViewById<EditText>(R.id.etLink)
+
+        if (isUpdate && store != null) {
+            etNama.setText(store.nama)
+            etLink.setText(store.link)
+            etNama.isEnabled = false // Nama tidak diubah saat update
+        }
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(if (isUpdate) "Update Store" else "Tambah Store")
+            .setView(dialogView)
+            .setPositiveButton(if (isUpdate) "Update" else "Tambah") { _, _ ->
+                val nama = etNama.text.toString()
+                val link = etLink.text.toString()
+                if (nama.isNotBlank() && link.isNotBlank()) {
+                    if (isUpdate) updateStore(nama, link)
+                    else createStore(nama, link)
+                } else {
+                    Toast.makeText(requireContext(), "Field tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun createStore(nama: String, link: String) {
+        ApiConfig.getApiService().createStore(nama, link)
+            .enqueue(object : Callback<ResponseBody> {
+                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(requireContext(), "Store berhasil ditambahkan", Toast.LENGTH_SHORT).show()
+                        fetchStores()
+                    } else {
+                        Toast.makeText(requireContext(), "Gagal menambahkan store", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+
+    private fun updateStore(nama: String, link: String) {
+        ApiConfig.getApiService().updateStore(nama, link)
+            .enqueue(object : Callback<ResponseBody> {
+                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(requireContext(), "Store berhasil diperbarui", Toast.LENGTH_SHORT).show()
+                        fetchStores()
+                    } else {
+                        Toast.makeText(requireContext(), "Gagal update store", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+
+    private fun deleteStore(Id: Int) {
+        ApiConfig.getApiService().deleteStore(Id)
+            .enqueue(object : Callback<ResponseBody> {
+                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(requireContext(), "Store berhasil dihapus", Toast.LENGTH_SHORT).show()
+                        fetchStores()
+                    } else {
+                        Toast.makeText(requireContext(), "Gagal menghapus store", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
     }
 }

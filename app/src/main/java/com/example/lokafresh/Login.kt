@@ -49,7 +49,8 @@ class Login : AppCompatActivity() {
             val passwordInput = passwordEditText.text.toString().trim()
 
             if (usernameInput.isEmpty() || passwordInput.isEmpty()) {
-                Toast.makeText(this, "Email dan Password tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Email dan Password tidak boleh kosong", Toast.LENGTH_SHORT)
+                    .show()
                 return@setOnClickListener
             }
 
@@ -61,37 +62,48 @@ class Login : AppCompatActivity() {
                 override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
                     if (response.isSuccessful && response.body() != null) {
                         val userList = response.body()
-                        val user = userList?.find { it.username == usernameInput && it.password == hashedPassword }
+                        val user =
+                            userList?.find { it.username == usernameInput && it.password == hashedPassword }
 
                         if (user != null) {
                             val editor = sharedPreferences.edit()
                             editor.putString("username", user.username)
                             editor.putString("fullname", user.fullname)
                             editor.apply()
-                            Toast.makeText(this@Login, "Login berhasil! Selamat datang, ${user.fullname}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this@Login,
+                                "Login berhasil! Selamat datang, ${user.fullname}",
+                                Toast.LENGTH_SHORT
+                            ).show()
                             val intent = Intent(this@Login, MainActivity::class.java)
                             startActivity(intent)
                             finish()
                         } else {
-                            Toast.makeText(this@Login, "Username atau password salah", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this@Login,
+                                "Username atau password salah",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     } else {
-                        Toast.makeText(this@Login, "Gagal mengambil data pengguna", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this@Login,
+                            "Gagal mengambil data pengguna",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
 
                 override fun onFailure(call: Call<List<User>>, t: Throwable) {
-                    Toast.makeText(this@Login, "Terjadi kesalahan: ${t.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@Login,
+                        "Terjadi kesalahan: ${t.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             })
         }
 
-        val txviewRegisterLink = findViewById<TextView>(R.id.registerLink)
-        txviewRegisterLink.setOnClickListener {
-            val intent = Intent(this, Register::class.java)
-            startActivity(intent)
-            finish()
-        }
     }
 
     // Function to hash the password using SHA-256

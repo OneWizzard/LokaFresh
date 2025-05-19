@@ -96,30 +96,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintWidth_percent="0.8" />
 
-    <TextView
-        android:id="@+id/registerLink"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Buat akun"
-        android:textColor="#26A269"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@id/btn_login"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="24dp" />
 
-    <TextView
-        android:id="@+id/tv_forgot_password"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Lupa kata sandi?"
-        android:textColor="#26A269"
-        android:textSize="14sp"
-        app:layout_constraintTop_toBottomOf="@id/registerLink"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp" />
     <TextView
         android:id="@+id/tv_loginadmin"
         android:layout_width="wrap_content"
@@ -127,9 +104,9 @@
         android:text="Masuk sebagai admin"
         android:textColor="#26A269"
         android:textSize="14sp"
-        app:layout_constraintTop_toBottomOf="@id/tv_forgot_password"
+        app:layout_constraintTop_toBottomOf="@id/btn_login"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="30dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

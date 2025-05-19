@@ -63,4 +63,27 @@ interface ApiService {
 
     @GET("webhook/get-all-store-data")
     fun getAllStoreData(): Call<List<StoreData>>
+
+    @POST("webhook/create-store")
+    @FormUrlEncoded
+    fun createStore(
+
+        @Field("nama") nama: String,
+        @Field("link") link: String
+
+    ): Call<ResponseBody>
+
+    @DELETE("webhook-test/delete-store")
+    fun deleteStore(
+        @Query("id") nama: Int
+    ): Call<ResponseBody>
+
+    @PUT("webhook/update-store")
+    @FormUrlEncoded
+    fun updateStore(
+
+        @Field("nama") nama: String,
+        @Field("link") link: String
+
+    ): Call<ResponseBody>
 }
