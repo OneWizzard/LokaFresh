@@ -22,7 +22,7 @@ class OrderFragment : Fragment(), OrderItemAdapter.OnItemClickListener {
     private lateinit var adapter: OrderItemAdapter
     private val dataList = mutableListOf<ListItem>()
 
-
+    private lateinit var emptyTextView: View
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -34,41 +34,55 @@ class OrderFragment : Fragment(), OrderItemAdapter.OnItemClickListener {
         adapter = OrderItemAdapter(dataList, this)
         recyclerView.adapter = adapter
 
+        emptyTextView = view.findViewById(R.id.tv_empty)
 
         val sharedPreferences = requireContext().getSharedPreferences("user_session", AppCompatActivity.MODE_PRIVATE)
-        val username = sharedPreferences.getString("username", null)
-
-        username?.let {
-            fetchDoDataByUsername(it)
+        val loggedInUsername = sharedPreferences.getString("username", null)
+        if (!loggedInUsername.isNullOrEmpty()) {
+            fetchDeliveryOrders(loggedInUsername)
         }
 
         return view
     }
 
-    private fun fetchDoDataByUsername(username: String) {
+    private fun fetchDeliveryOrders(username: String) {
         val apiService = ApiConfig.getApiService()
         apiService.getDoUser(username).enqueue(object : Callback<List<DoData>> {
             override fun onResponse(call: Call<List<DoData>>, response: Response<List<DoData>>) {
-                if (response.isSuccessful && response.body() != null) {
-                    val doList = response.body()!!
-                    dataList.clear()
-                    for (item in doList) {
-                        val listItem = ListItem(
-                            icon = R.drawable.baseline_location_pin_24,
-                            title = item.order_number,
-                            subtitle = item.destination,
-                            description = "Tanggal: ${item.date}, Delivered: ${item.delivered == 1}"
-                        )
-                        dataList.add(listItem)
+                if (response.isSuccessful) {
+                    response.body()?.let { orders ->
+                        dataList.clear()
+                        orders.forEach { doData ->
+                            val orderNumber = doData.order_number ?: ""
+                            val destination = doData.destination ?: ""
+
+                            // Jika salah satu dari data penting kosong/null, skip item ini
+                            if (orderNumber.isNotBlank() && destination.isNotBlank()) {
+                                val listItem = ListItem(
+                                    icon = R.drawable.baseline_location_pin_24,
+                                    title = "Order #: $orderNumber",
+                                    subtitle = "Tujuan: $destination",
+                                    description = if (doData.delivered == 1) "Status: Sudah dikirim" else "Status: Belum dikirim"
+                                )
+                                dataList.add(listItem)
+                            }
+                        }
+                        adapter.notifyDataSetChanged()
+                        if (dataList.isEmpty()) {
+                            emptyTextView.visibility = View.VISIBLE
+                            recyclerView.visibility = View.GONE
+                        } else {
+                            emptyTextView.visibility = View.GONE
+                            recyclerView.visibility = View.VISIBLE
+                        }
                     }
-                    adapter.notifyDataSetChanged()
                 } else {
-                    Log.e("OrderFragment", "Gagal mendapatkan data DO: ${response.code()}")
+                    Log.e("OrderFragment", "Gagal ambil DO: ${response.code()}")
                 }
             }
 
             override fun onFailure(call: Call<List<DoData>>, t: Throwable) {
-                Log.e("OrderFragment", "Error fetch DO: ${t.message}")
+                Log.e("OrderFragment", "Error API DO: ${t.message}")
             }
         })
     }
