@@ -11,9 +11,9 @@ object ApiConfig {
 
     fun getApiService(): ApiService {
         val client = OkHttpClient.Builder()
-            .connectTimeout(120, TimeUnit.SECONDS) // Timeout saat membuat koneksi
-            .readTimeout(120, TimeUnit.SECONDS)    // Timeout saat membaca respon
-            .writeTimeout(120, TimeUnit.SECONDS)   // Timeout saat menulis data
+            .connectTimeout(300, TimeUnit.SECONDS) // Timeout saat membuat koneksi
+            .readTimeout(300, TimeUnit.SECONDS)    // Timeout saat membaca respon
+            .writeTimeout(300, TimeUnit.SECONDS)   // Timeout saat menulis data
             .build()
 
         val retrofit = Retrofit.Builder()

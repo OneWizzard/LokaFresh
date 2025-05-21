@@ -1,9 +1,27 @@
 package com.example.lokafresh.retrofit
 
-import com.example.lokafresh.response.*
+import com.example.lokafresh.response.ChatbotRequest
+import com.example.lokafresh.response.ChatbotResponse
+import com.example.lokafresh.response.CreateDoRequest
+import com.example.lokafresh.response.DoData
+import com.example.lokafresh.response.GenericResponse
+import com.example.lokafresh.response.OrderIdRequest
+import com.example.lokafresh.response.StoreDOData
+import com.example.lokafresh.response.StoreData
+import com.example.lokafresh.response.UpdateDoRequest
+import com.example.lokafresh.response.User
+import com.example.lokafresh.response.UsernameCheckResponse
+import com.example.lokafresh.response.UsernameRequest
 import okhttp3.ResponseBody
 import retrofit2.Call
-import retrofit2.http.*
+import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
+import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Query
 
 interface ApiService {
 
@@ -46,7 +64,6 @@ interface ApiService {
     @GET("webhook/get-all-data")
     fun getDoData(): Call<List<DoData>>
 
-
     @POST("webhook/create-do")
     fun createDo(@Body request: CreateDoRequest): Call<GenericResponse>
 
@@ -56,6 +73,8 @@ interface ApiService {
     @PUT("webhook/update-do")
     fun updateDo(@Body request: UpdateDoRequest): Call<GenericResponse>
 
+    @GET("webhook/get-do-user-data")
+    fun getDoUser(@Query("username") username: String): Call<List<DoData>>
 
     //==========================
     //STORE ENDPOINTS
@@ -86,4 +105,7 @@ interface ApiService {
         @Field("link") link: String
 
     ): Call<ResponseBody>
+
+    @GET("webhook/get-store-data")
+    fun getStoreDataByName(@Query("nama") nama: String): Call<StoreDOData>
 }
