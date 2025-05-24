@@ -21,7 +21,6 @@ import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import okhttp3.ResponseBody
-import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -70,12 +69,12 @@ class CameraFragment : Fragment() {
                     sendScanToBackend(pageBitmaps)
 
                     // Setelah selesai scanning, balik ke OrderFragment
-                    moveToOrderFragment(null)
+                    moveToOrderFragment()
 
                 }
             } else {
                 Log.d("DocumentScanner", "Scanning cancelled or failed")
-                moveToOrderFragment(null) // Kalau gagal/cancel scanning, juga balik ke OrderFragment
+                moveToOrderFragment() // Kalau gagal/cancel scanning, juga balik ke OrderFragment
             }
         }
     }
@@ -139,37 +138,35 @@ class CameraFragment : Fragment() {
                 override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                     if (response.isSuccessful) {
                         val responseBody = response.body()?.string()
-                        Log.d("DocumentScanner", "Scan uploaded successfully. Response: $response")
-
-                        try {
-                            val json = JSONObject(responseBody ?: "")
-                            val customerName = json.getJSONObject("customer").getString("name")
-                            moveToOrderFragment(customerName)
-                        } catch (e: Exception) {
-                            Log.e("DocumentScanner", "Failed to parse response JSON: ${e.message}")
-                            moveToOrderFragment(null)
+                        val returFragment = ReturFragment().apply {
+                            arguments = Bundle().apply {
+                                putString("scan_response", responseBody)
+                            }
                         }
+                        parentFragmentManager.beginTransaction()
+                            .replace(R.id.fragment_container, returFragment)
+                            .commit()
+                        Log.d("DocumentScanner", "Scan uploaded successfully. Response: $responseBody")
                     } else {
-                        Log.e("DocumentScanner", "Failed to upload scan. Code: ${response.code()}")
-                        moveToOrderFragment(null)
+                        val errorBody = response.errorBody()?.string()
+                        Log.e("DocumentScanner", "Failed to upload scan: $errorBody")
+                        // Tambahkan log status code untuk debugging
+                        Log.e("DocumentScanner", "Response Code: ${response.code()}")
                     }
                 }
 
                 override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                    Log.e("DocumentScanner", "Upload failed: ${t.message}")
-                    moveToOrderFragment(null)
+                    Log.e("DocumentScanner", "Error uploading scan: ${t.message}")
+                    // Tambahkan log exception lengkap untuk debugging
+                    Log.e("DocumentScanner", "Error details:", t)
                 }
             })
+
     }
 
-    private fun moveToOrderFragment(customerName: String?) {
-        val fragment = OrderFragment()
-        val bundle = Bundle()
-        bundle.putString("customer_name", customerName)
-        fragment.arguments = bundle
-
+    private fun moveToOrderFragment() {
         parentFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, fragment)
+            .replace(R.id.fragment_container, OrderFragment()) // Ganti fragment_container sesuai ID container kamu
             .commit()
     }
 

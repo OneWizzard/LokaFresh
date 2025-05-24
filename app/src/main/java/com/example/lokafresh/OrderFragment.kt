@@ -1,11 +1,14 @@
 package com.example.lokafresh
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -31,6 +34,9 @@ class OrderFragment : Fragment(), OrderItemAdapter.OnItemClickListener {
     private lateinit var emptyTextView: View
     private var storeList: List<StoreData> = listOf()
 
+    private var gmapsLink: String? = null
+    private lateinit var progressBar: View
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -43,10 +49,23 @@ class OrderFragment : Fragment(), OrderItemAdapter.OnItemClickListener {
 
         emptyTextView = view.findViewById(R.id.tv_empty)
 
+        progressBar = view.findViewById(R.id.progressBar)
+
         val sharedPreferences = requireContext().getSharedPreferences("user_session", AppCompatActivity.MODE_PRIVATE)
         val loggedInUsername = sharedPreferences.getString("username", null)
         if (!loggedInUsername.isNullOrEmpty()) {
             fetchStoresAndOrders(loggedInUsername)
+        }
+
+        val fabMap = view.findViewById<View>(R.id.fab_map)
+        fabMap.setOnClickListener {
+            if (!gmapsLink.isNullOrEmpty()) {
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.data = Uri.parse(gmapsLink)
+                startActivity(intent)
+            } else {
+                Toast.makeText(requireContext(), "Link Google Maps belum tersedia", Toast.LENGTH_SHORT).show()
+            }
         }
 
         return view
@@ -73,6 +92,7 @@ class OrderFragment : Fragment(), OrderItemAdapter.OnItemClickListener {
     }
 
     private fun fetchDeliveryOrders(username: String) {
+        progressBar.visibility = View.VISIBLE
         val apiService = ApiConfig.getApiService()
 
         apiService.getDoUser(username).enqueue(object : Callback<List<DoData>> {
@@ -82,9 +102,11 @@ class OrderFragment : Fragment(), OrderItemAdapter.OnItemClickListener {
 
                     apiService.getTspRoute(UsernameRequest(username)).enqueue(object : Callback<List<TspResponse>> {
                         override fun onResponse(call: Call<List<TspResponse>>, tspResponse: Response<List<TspResponse>>) {
+                            progressBar.visibility = View.GONE
                             if (tspResponse.isSuccessful && !tspResponse.body().isNullOrEmpty()) {
                                 val tspData = tspResponse.body()!![0]
                                 val recommendedRoute = tspData.recommended_route
+                                gmapsLink = tspData.gmaps_link
 
                                 val sortedDoList = recommendedRoute.mapNotNull { routeNum ->
                                     doList.find { doData ->
@@ -115,11 +137,13 @@ class OrderFragment : Fragment(), OrderItemAdapter.OnItemClickListener {
                                 updateOrderCountsInPrefs() // Simpan ke SharedPreferences
 
                             } else {
+                                progressBar.visibility = View.GONE
                                 Log.e("OrderFragment", "Gagal get TSP: ${tspResponse.code()}")
                             }
                         }
 
                         override fun onFailure(call: Call<List<TspResponse>>, t: Throwable) {
+                            progressBar.visibility = View.GONE
                             Log.e("OrderFragment", "Error TSP: ${t.message}")
                         }
                     })
@@ -132,7 +156,9 @@ class OrderFragment : Fragment(), OrderItemAdapter.OnItemClickListener {
                 Log.e("OrderFragment", "Error API DO: ${t.message}")
             }
         })
+
     }
+
 
     override fun onItemClick(position: Int) {
         if (position !in dataList.indices) return
