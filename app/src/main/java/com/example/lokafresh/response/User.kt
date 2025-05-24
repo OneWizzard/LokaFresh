@@ -63,3 +63,8 @@ data class StoreData(
     val link: String
 
 )
+
+data class TspResponse(
+    val recommended_route: List<Int>,
+    val gmaps_link: String
+)

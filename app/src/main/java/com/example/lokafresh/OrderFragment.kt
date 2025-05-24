@@ -11,6 +11,8 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lokafresh.response.DoData
+import com.example.lokafresh.response.TspResponse
+import com.example.lokafresh.response.UsernameRequest
 import com.example.lokafresh.retrofit.ApiConfig
 import retrofit2.Call
 import retrofit2.Callback
@@ -47,35 +49,52 @@ class OrderFragment : Fragment(), OrderItemAdapter.OnItemClickListener {
 
     private fun fetchDeliveryOrders(username: String) {
         val apiService = ApiConfig.getApiService()
+
+        // Step 1: Get DO Data
         apiService.getDoUser(username).enqueue(object : Callback<List<DoData>> {
             override fun onResponse(call: Call<List<DoData>>, response: Response<List<DoData>>) {
-                if (response.isSuccessful) {
-                    response.body()?.let { orders ->
-                        dataList.clear()
-                        orders.forEach { doData ->
-                            val orderNumber = doData.order_number ?: ""
-                            val destination = doData.destination ?: ""
+                if (response.isSuccessful && response.body() != null) {
+                    val doList = response.body()!!
 
-                            // Jika salah satu dari data penting kosong/null, skip item ini
-                            if (orderNumber.isNotBlank() && destination.isNotBlank()) {
-                                val listItem = ListItem(
-                                    icon = R.drawable.baseline_location_pin_24,
-                                    title = "Order #: $orderNumber",
-                                    subtitle = "Tujuan: $destination",
-                                    description = if (doData.delivered == 1) "Status: Sudah dikirim" else "Status: Belum dikirim"
-                                )
-                                dataList.add(listItem)
+                    // Step 2: Get recommended route
+                    apiService.getTspRoute(UsernameRequest(username)).enqueue(object : Callback<List<TspResponse>> {
+                        override fun onResponse(call: Call<List<TspResponse>>, tspResponse: Response<List<TspResponse>>) {
+                            if (tspResponse.isSuccessful && !tspResponse.body().isNullOrEmpty()) {
+                                val tspData = tspResponse.body()!![0]
+                                val recommendedRoute = tspData.recommended_route
+
+                                // Step 3: Filter & sort doList based on recommended_route
+                                val sortedDoList = recommendedRoute.mapNotNull { routeNum ->
+                                    doList.find { doData ->
+                                        doData.destination == routeNum.toString()
+                                    }
+                                }
+
+                                // Step 4: Populate RecyclerView
+                                dataList.clear()
+                                sortedDoList.forEach { doData ->
+                                    val listItem = ListItem(
+                                        icon = R.drawable.baseline_location_pin_24,
+                                        title = "Order #: ${doData.order_number}",
+                                        subtitle = "Tujuan: ${doData.destination}",
+                                        description = if (doData.delivered == 1) "Status: Sudah dikirim" else "Status: Belum dikirim"
+                                    )
+                                    dataList.add(listItem)
+                                }
+
+                                adapter.notifyDataSetChanged()
+                                emptyTextView.visibility = if (dataList.isEmpty()) View.VISIBLE else View.GONE
+                                recyclerView.visibility = if (dataList.isEmpty()) View.GONE else View.VISIBLE
+
+                            } else {
+                                Log.e("OrderFragment", "Gagal get TSP: ${tspResponse.code()}")
                             }
                         }
-                        adapter.notifyDataSetChanged()
-                        if (dataList.isEmpty()) {
-                            emptyTextView.visibility = View.VISIBLE
-                            recyclerView.visibility = View.GONE
-                        } else {
-                            emptyTextView.visibility = View.GONE
-                            recyclerView.visibility = View.VISIBLE
+
+                        override fun onFailure(call: Call<List<TspResponse>>, t: Throwable) {
+                            Log.e("OrderFragment", "Error TSP: ${t.message}")
                         }
-                    }
+                    })
                 } else {
                     Log.e("OrderFragment", "Gagal ambil DO: ${response.code()}")
                 }

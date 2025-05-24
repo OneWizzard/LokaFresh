@@ -8,6 +8,7 @@ import com.example.lokafresh.response.GenericResponse
 import com.example.lokafresh.response.OrderIdRequest
 import com.example.lokafresh.response.StoreDOData
 import com.example.lokafresh.response.StoreData
+import com.example.lokafresh.response.TspResponse
 import com.example.lokafresh.response.UpdateDoRequest
 import com.example.lokafresh.response.User
 import com.example.lokafresh.response.UsernameCheckResponse
@@ -53,6 +54,8 @@ interface ApiService {
     @POST("webhook/prompt")
     fun getChatbotResponse(@Body request: ChatbotRequest): Call<ChatbotResponse>
 
+    @POST("webhook/get-tsp")
+    fun getTspRoute(@Body request: UsernameRequest): Call<List<TspResponse>>
 
     // =======================
     // DO (Delivery Order) Endpoints
