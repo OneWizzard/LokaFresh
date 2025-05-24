@@ -1,15 +1,14 @@
 package com.example.lokafresh
 
+import OrderAdapter
 import android.app.AlertDialog
+import android.app.ProgressDialog
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.EditText
-import android.widget.Spinner
-import android.widget.Toast
+import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -31,6 +30,8 @@ class OrderDb : Fragment() {
 
     private var userList: List<User> = listOf()
     private var storeList: List<StoreData> = listOf()
+    private var isUserReady = false
+    private var isStoreReady = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,8 +44,8 @@ class OrderDb : Fragment() {
 
         apiService = ApiConfig.getApiService()
 
-        setupRecyclerView()
-        fetchOrders()
+        recyclerView.layoutManager = LinearLayoutManager(context)
+
         fetchUsersAndStores()
 
         fabAddOrder.setOnClickListener {
@@ -54,37 +55,16 @@ class OrderDb : Fragment() {
         return view
     }
 
-    private fun setupRecyclerView() {
-        orderAdapter = OrderAdapter(listOf(), ::deleteOrder, ::updateOrder)
-        recyclerView.layoutManager = LinearLayoutManager(context)
-        recyclerView.adapter = orderAdapter
-    }
-
-    private fun fetchOrders() {
-        Log.d("OrderDb", "Fetching orders...")
-
-        apiService.getDoData().enqueue(object : Callback<List<DoData>> {
-            override fun onResponse(call: Call<List<DoData>>, response: Response<List<DoData>>) {
-                if (response.isSuccessful) {
-                    val orders = response.body() ?: emptyList()
-                    Log.d("OrderDb", "Fetched orders: $orders")
-                    orderAdapter.updateData(orders)
-                } else {
-                    Log.e("OrderDb", "Error Response: ${response.code()} - ${response.errorBody()?.string()}")
-                }
-            }
-
-            override fun onFailure(call: Call<List<DoData>>, t: Throwable) {
-                Log.e("OrderDb", "Failed to fetch data: ${t.message}")
-            }
-        })
-    }
-
     private fun fetchUsersAndStores() {
+        isUserReady = false
+        isStoreReady = false
+
         apiService.getUserData().enqueue(object : Callback<List<User>> {
             override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
                 if (response.isSuccessful) {
                     userList = response.body() ?: listOf()
+                    isUserReady = true
+                    if (isStoreReady) fetchOrders()
                 }
             }
 
@@ -97,6 +77,8 @@ class OrderDb : Fragment() {
             override fun onResponse(call: Call<List<StoreData>>, response: Response<List<StoreData>>) {
                 if (response.isSuccessful) {
                     storeList = response.body() ?: listOf()
+                    isStoreReady = true
+                    if (isUserReady) fetchOrders()
                 }
             }
 
@@ -106,6 +88,44 @@ class OrderDb : Fragment() {
         })
     }
 
+    private fun fetchOrders() {
+        apiService.getDoData().enqueue(object : Callback<List<DoData>> {
+            override fun onResponse(call: Call<List<DoData>>, response: Response<List<DoData>>) {
+                if (response.isSuccessful) {
+                    val orders = response.body() ?: emptyList()
+                    if (!::orderAdapter.isInitialized) {
+                        orderAdapter = OrderAdapter(
+                            orders,
+                            storeList,
+                            ::deleteOrder,
+                            ::updateOrder,
+                            ::openDetailFragment  // Tambahan klik item
+                        )
+                        recyclerView.adapter = orderAdapter
+                    } else {
+                        orderAdapter.updateData(orders, storeList)
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<List<DoData>>, t: Throwable) {
+                Log.e("OrderDb", "Failed to fetch data: ${t.message}")
+            }
+        })
+    }
+
+    private fun openDetailFragment(order: DoData) {
+        val detailFragment = DetailItemFragment()
+        val bundle = Bundle()
+        bundle.putString("order_id", order.order_id)
+        detailFragment.arguments = bundle
+
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container_view, detailFragment) // Pastikan ada container ini di Activity/Fragment host
+            .addToBackStack(null)
+            .commit()
+    }
+
     private fun showAddOrderDialog() {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_order, null)
 
@@ -113,13 +133,11 @@ class OrderDb : Fragment() {
         val spinnerUsername = dialogView.findViewById<Spinner>(R.id.spinnerUsername)
         val spinnerDestination = dialogView.findViewById<Spinner>(R.id.spinnerDestination)
 
-        // Set up Username Spinner
         val usernames = userList.map { it.username }
         val usernameAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, usernames)
         usernameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerUsername.adapter = usernameAdapter
 
-        // Set up Store Spinner
         val storeNames = storeList.map { it.nama }
         val storeAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, storeNames)
         storeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -128,72 +146,184 @@ class OrderDb : Fragment() {
         AlertDialog.Builder(requireContext())
             .setTitle("Tambah Order")
             .setView(dialogView)
-            .setPositiveButton("Simpan") { _, _ ->
-                val orderNumber = edtOrderNumber.text.toString()
-                val username = spinnerUsername.selectedItem.toString()
-                val storeName = spinnerDestination.selectedItem.toString()
+            .setPositiveButton("Simpan", null) // override nanti di setOnShowListener
+            .setNegativeButton("Batal", null)
+            .create()
+            .also { dialog ->
+                dialog.setOnShowListener {
+                    val btnSave = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                    btnSave.setOnClickListener {
+                        val orderNumber = edtOrderNumber.text.toString()
+                        val username = spinnerUsername.selectedItem?.toString() ?: ""
+                        val storeName = spinnerDestination.selectedItem?.toString() ?: ""
 
-                val selectedStore = storeList.find { it.nama == storeName }
-                val storeId = selectedStore?.id?.toString() ?: ""
+                        val selectedStore = storeList.find { it.nama == storeName }
+                        val storeId = selectedStore?.id?.toString() ?: ""
 
+                        if (orderNumber.isNotEmpty()) {
+                            val newOrderId = UUID.randomUUID().toString()
+                            val request = CreateDoRequest(
+                                order_id = newOrderId,
+                                order_number = orderNumber,
+                                username = username,
+                                destination = storeId,
+                                delivered = 0
+                            )
 
-                if (orderNumber.isNotEmpty()) {
-                    val request = CreateDoRequest(
-                        order_id = UUID.randomUUID().toString(),
-                        order_number = orderNumber,
-                        username = username,
-                        destination = storeId,
-                        delivered = 0
-                    )
+                            apiService.createDo(request).enqueue(object : Callback<GenericResponse> {
+                                override fun onResponse(call: Call<GenericResponse>, response: Response<GenericResponse>) {
+                                    if (response.isSuccessful) {
+                                        Toast.makeText(context, "Order ditambahkan", Toast.LENGTH_SHORT).show()
+                                        fetchOrders()
+                                        dialog.dismiss()
+                                        // Setelah order berhasil dibuat, langsung tampilkan dialog tambah barang
+                                        showAddItemDialog(newOrderId)
+                                    } else {
+                                        Toast.makeText(context, "Gagal menambahkan order", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
 
-                    apiService.createDo(request).enqueue(object : Callback<GenericResponse> {
-                        override fun onResponse(call: Call<GenericResponse>, response: Response<GenericResponse>) {
-                            fetchOrders()
-                            Toast.makeText(context, "Order ditambahkan", Toast.LENGTH_SHORT).show()
+                                override fun onFailure(call: Call<GenericResponse>, t: Throwable) {
+                                    Toast.makeText(context, "Gagal menambahkan order", Toast.LENGTH_SHORT).show()
+                                }
+                            })
+                        } else {
+                            Toast.makeText(context, "Order number tidak boleh kosong", Toast.LENGTH_SHORT).show()
                         }
+                    }
+                }
+                dialog.show()
+            }
+    }
 
-                        override fun onFailure(call: Call<GenericResponse>, t: Throwable) {
-                            Toast.makeText(context, "Gagal menambahkan order", Toast.LENGTH_SHORT).show()
-                        }
-                    })
+    private fun showAddItemDialog(orderId: String) {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_item, null)
+
+        val spinnerItems = dialogView.findViewById<Spinner>(R.id.spinnerItems)
+        val edtQuantity = dialogView.findViewById<EditText>(R.id.edtQuantity)
+
+        apiService.getListItems().enqueue(object : Callback<List<ItemData>> {
+            override fun onResponse(call: Call<List<ItemData>>, response: Response<List<ItemData>>) {
+                if (response.isSuccessful) {
+                    val items = response.body() ?: emptyList()
+                    val itemNames = items.map { it.name }
+
+                    val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, itemNames)
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                    spinnerItems.adapter = adapter
+
+                    spinnerItems.tag = items
                 } else {
-                    Toast.makeText(context, "Order number tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Gagal mengambil daftar barang", Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton("Batal", null)
-            .show()
 
+            override fun onFailure(call: Call<List<ItemData>>, t: Throwable) {
+                Toast.makeText(context, "Gagal mengambil daftar barang: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setTitle("Tambah Barang")
+            .setView(dialogView)
+            .setPositiveButton("Simpan", null)
+            .setNegativeButton("Selesai", null)
+            .create()
+
+        dialog.setOnShowListener {
+            val btnSave = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            val btnCancel = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+
+            btnSave.setOnClickListener {
+                val quantityStr = edtQuantity.text.toString().trim()
+                val quantity = quantityStr.toDoubleOrNull() ?: 0.0
+
+                val selectedItemPosition = spinnerItems.selectedItemPosition
+                val items = spinnerItems.tag as? List<ItemData>
+
+                if (items == null || items.isEmpty()) {
+                    Toast.makeText(context, "Daftar barang belum tersedia", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                if (selectedItemPosition == AdapterView.INVALID_POSITION) {
+                    Toast.makeText(context, "Pilih barang terlebih dahulu", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                val selectedItem = items[selectedItemPosition]
+
+                if (quantity <= 0) {
+                    Toast.makeText(context, "Jumlah barang harus lebih dari 0", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                val itemRequest = AddItemRequest(
+                    order_id = orderId,
+                    nama = selectedItem.name,
+                    quantity = quantity
+                )
+
+                apiService.addItem(itemRequest).enqueue(object : Callback<GenericResponse> {
+                    override fun onResponse(call: Call<GenericResponse>, response: Response<GenericResponse>) {
+                        if (response.isSuccessful) {
+                            Toast.makeText(context, "Barang berhasil ditambahkan", Toast.LENGTH_SHORT).show()
+                            edtQuantity.text.clear()
+                        } else {
+                            Toast.makeText(context, "Gagal menambahkan barang", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+                    override fun onFailure(call: Call<GenericResponse>, t: Throwable) {
+                        Toast.makeText(context, "Gagal menambahkan barang", Toast.LENGTH_SHORT).show()
+                    }
+                })
+            }
+
+            btnCancel.setOnClickListener {
+                dialog.dismiss()
+                fetchOrders()
+            }
+        }
+
+        dialog.show()
     }
 
     private fun deleteOrder(order: DoData) {
-        apiService.deleteDo(order.order_id).enqueue(object : Callback<GenericResponse> {
-            override fun onResponse(call: Call<GenericResponse>, response: Response<GenericResponse>) {
-                fetchOrders()
-            }
+        AlertDialog.Builder(requireContext())
+            .setTitle("Konfirmasi Hapus")
+            .setMessage("Apakah Anda yakin ingin menghapus order ini?")
+            .setPositiveButton("Hapus") { dialog, _ ->
+                val progressDialog = ProgressDialog(requireContext())
+                progressDialog.setMessage("Menghapus order...")
+                progressDialog.setCancelable(false)
+                progressDialog.show()
 
-            override fun onFailure(call: Call<GenericResponse>, t: Throwable) {
-                Log.e("DeleteOrder", "Error: ${t.message}")
+                apiService.deleteDo(order.order_id).enqueue(object : Callback<GenericResponse> {
+                    override fun onResponse(call: Call<GenericResponse>, response: Response<GenericResponse>) {
+                        progressDialog.dismiss()
+                        if (response.isSuccessful) {
+                            Toast.makeText(context, "Order berhasil dihapus", Toast.LENGTH_SHORT).show()
+                            fetchOrders()
+                        } else {
+                            Toast.makeText(context, "Gagal menghapus order", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+                    override fun onFailure(call: Call<GenericResponse>, t: Throwable) {
+                        progressDialog.dismiss()
+                        Toast.makeText(context, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                    }
+                })
+                dialog.dismiss()
             }
-        })
+            .setNegativeButton("Batal") { dialog, _ -> dialog.dismiss() }
+            .show()
     }
 
-    private fun updateOrder(order: DoData) {
-        val request = UpdateDoRequest(
-            order_id = order.order_id,
-            order_number = order.order_number,
-            username = order.username,
-            destination = order.destination,
-            delivered = order.delivered,
-            date = "2025-05-11"
-        )
-        apiService.updateDo(request).enqueue(object : Callback<GenericResponse> {
-            override fun onResponse(call: Call<GenericResponse>, response: Response<GenericResponse>) {
-                fetchOrders()
-            }
 
-            override fun onFailure(call: Call<GenericResponse>, t: Throwable) {
-                Log.e("UpdateOrder", "Error: ${t.message}")
-            }
-        })
+
+    private fun updateOrder(order: DoData) {
+        // Implement update order jika perlu
     }
 }

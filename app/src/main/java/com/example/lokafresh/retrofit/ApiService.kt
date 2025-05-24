@@ -1,10 +1,12 @@
 package com.example.lokafresh.retrofit
 
+import com.example.lokafresh.response.AddItemRequest
 import com.example.lokafresh.response.ChatbotRequest
 import com.example.lokafresh.response.ChatbotResponse
 import com.example.lokafresh.response.CreateDoRequest
 import com.example.lokafresh.response.DoData
 import com.example.lokafresh.response.GenericResponse
+import com.example.lokafresh.response.ItemData
 import com.example.lokafresh.response.OrderIdRequest
 import com.example.lokafresh.response.StoreDOData
 import com.example.lokafresh.response.StoreData
@@ -78,6 +80,24 @@ interface ApiService {
 
     @GET("webhook/get-do-user-data")
     fun getDoUser(@Query("username") username: String): Call<List<DoData>>
+
+    @POST("webhook/add-item")
+    fun addItem(@Body request: AddItemRequest): Call<GenericResponse>
+
+    @DELETE("webhook/delete-item")
+    fun deleteItem(
+        @Query("order_id") orderId: String,
+        @Query("nama") nama: String
+    ): Call<GenericResponse>
+
+    @GET("webhook/get-list-items")
+    fun getListItems(): Call<List<ItemData>>
+
+    @GET("webhook/get-do-item")
+    fun getDoItem(@Query("order_id") orderId: String): Call<List<ItemData>>
+
+
+
 
     //==========================
     //STORE ENDPOINTS

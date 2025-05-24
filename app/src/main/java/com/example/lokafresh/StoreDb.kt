@@ -1,6 +1,7 @@
 package com.example.lokafresh
 
 import android.app.AlertDialog
+import android.app.ProgressDialog
 import android.os.Bundle
 import android.view.*
 import android.widget.EditText
@@ -131,20 +132,35 @@ class StoreDb : Fragment() {
     }
 
     private fun deleteStore(Id: Int) {
-        ApiConfig.getApiService().deleteStore(Id)
-            .enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                    if (response.isSuccessful) {
-                        Toast.makeText(requireContext(), "Store berhasil dihapus", Toast.LENGTH_SHORT).show()
-                        fetchStores()
-                    } else {
-                        Toast.makeText(requireContext(), "Gagal menghapus store", Toast.LENGTH_SHORT).show()
-                    }
-                }
+        AlertDialog.Builder(requireContext())
+            .setTitle("Konfirmasi Hapus")
+            .setMessage("Apakah Anda yakin ingin menghapus store ini?")
+            .setPositiveButton("Hapus") { dialog, _ ->
+                val progressDialog = ProgressDialog(requireContext())
+                progressDialog.setMessage("Menghapus store...")
+                progressDialog.setCancelable(false)
+                progressDialog.show()
 
-                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                    Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
-                }
-            })
+                ApiConfig.getApiService().deleteStore(Id)
+                    .enqueue(object : Callback<ResponseBody> {
+                        override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                            progressDialog.dismiss()
+                            if (response.isSuccessful) {
+                                Toast.makeText(requireContext(), "Store berhasil dihapus", Toast.LENGTH_SHORT).show()
+                                fetchStores()
+                            } else {
+                                Toast.makeText(requireContext(), "Gagal menghapus store", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+
+                        override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                            progressDialog.dismiss()
+                            Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    })
+                dialog.dismiss()
+            }
+            .setNegativeButton("Batal") { dialog, _ -> dialog.dismiss() }
+            .show()
     }
-}
+    }
