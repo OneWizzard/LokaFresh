@@ -68,3 +68,41 @@ data class TspResponse(
     val recommended_route: List<Int>,
     val gmaps_link: String
 )
+
+data class AddItemRequest(
+    val order_id: String,
+    val nama: String,
+    val quantity: Double,
+    val total_price: Int = 0,
+    val weight: Int = 0,
+    val unit_price: Int = 0,
+    val unit_metrics: String = "pcs"
+)
+
+
+data class ItemData(
+    val order_id: String,
+    val name: String,
+    val quantity: Double,
+    val total_price: Int,
+    val weight: Int,
+    val unit_price: Int,
+    val unit_metrics: String
+)
+data class ListItem(
+    val icon: Int,
+    val title: String,
+    val subtitle: String,
+    val description: String,
+    val isChecked: Boolean,
+    val orderId: String
+)
+data class OrderItemDetail(
+    val name: String,
+    val quantity: Int
+)
+
+
+
+
+

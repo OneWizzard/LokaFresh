@@ -1,5 +1,7 @@
 package com.example.lokafresh
 
+import android.app.AlertDialog
+import android.app.ProgressDialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,7 +12,6 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lokafresh.response.User
-import com.example.lokafresh.response.UsernameRequest
 import com.example.lokafresh.retrofit.ApiConfig
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import retrofit2.Call
@@ -32,7 +33,7 @@ class UserDb : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(context)
 
         userAdapter = UserAdapter(emptyList(),
-            onDeleteClick = { user -> deleteUser(user.username) },
+            onDeleteClick = { user -> confirmDeleteUser(user.username) },
             onEditClick = { user -> showEditDialog(user) }
         )
 
@@ -40,10 +41,8 @@ class UserDb : Fragment() {
 
         loadUsers()
 
-        // FAB Action untuk memulai RegisterActivity
         val fabAddUser: FloatingActionButton = view.findViewById(R.id.fabAddUser)
         fabAddUser.setOnClickListener {
-            // Memulai RegisterActivity
             val intent = Intent(requireContext(), Register::class.java)
             startActivity(intent)
         }
@@ -68,18 +67,40 @@ class UserDb : Fragment() {
         })
     }
 
+    private fun confirmDeleteUser(username: String) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Konfirmasi Hapus User")
+            .setMessage("Apakah Anda yakin ingin menghapus user $username?")
+            .setPositiveButton("Hapus") { dialog, _ ->
+                deleteUser(username)
+                dialog.dismiss()
+            }
+            .setNegativeButton("Batal") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
     private fun deleteUser(username: String) {
+        val progressDialog = ProgressDialog(requireContext()).apply {
+            setMessage("Menghapus user...")
+            setCancelable(false)
+            show()
+        }
+
         apiService.deleteUser(username).enqueue(object : Callback<Void> {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                progressDialog.dismiss()
                 if (response.isSuccessful) {
                     Toast.makeText(context, "User berhasil dihapus", Toast.LENGTH_SHORT).show()
-                    loadUsers() // refresh data setelah delete
+                    loadUsers()
                 } else {
                     Toast.makeText(context, "Gagal hapus user: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<Void>, t: Throwable) {
+                progressDialog.dismiss()
                 Toast.makeText(context, "Gagal hapus user: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
@@ -92,17 +113,25 @@ class UserDb : Fragment() {
     }
 
     private fun updateUser(user: User) {
+        val progressDialog = ProgressDialog(requireContext()).apply {
+            setMessage("Memperbarui user...")
+            setCancelable(false)
+            show()
+        }
+
         apiService.updateUser(user).enqueue(object : Callback<Void> {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                progressDialog.dismiss()
                 if (response.isSuccessful) {
                     Toast.makeText(context, "User berhasil diperbarui", Toast.LENGTH_SHORT).show()
-                    loadUsers() // refresh data setelah update
+                    loadUsers()
                 } else {
                     Toast.makeText(context, "Gagal update user", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<Void>, t: Throwable) {
+                progressDialog.dismiss()
                 Toast.makeText(context, "Gagal update user: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
