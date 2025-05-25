@@ -9,8 +9,9 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.lokafresh.databinding.FragmentReturBinding
-import org.json.JSONArray
+import com.example.lokafresh.retrofit.ApiConfig
 import org.json.JSONObject
+import retrofit2.Call
 
 class ReturFragment : Fragment() {
 
@@ -43,6 +44,7 @@ class ReturFragment : Fragment() {
     private fun parseScanResponse(json: String): List<ReturItem> {
         val jsonObject = JSONObject(json)
         val itemsArray = jsonObject.getJSONArray("items")
+        val orderNumber = jsonObject.getString("order_number")
         val itemList = mutableListOf<ReturItem>()
 
         for (i in 0 until itemsArray.length()) {
@@ -53,7 +55,8 @@ class ReturFragment : Fragment() {
                     name = item.getString("name"),
                     unitPrice = item.getDouble("unit_price"),
                     quantity = item.getDouble("quantity"),
-                    returnQty = 0.0 // default user input
+                    returnQty = 0.0, // default user input
+                    order_number = orderNumber
                 )
             )
         }
@@ -62,19 +65,24 @@ class ReturFragment : Fragment() {
     }
 
     private fun sendReturDataToBackend(items: List<ReturItem>) {
-        val requestBody = JSONObject()
-        val itemArray = JSONArray()
+        val apiService = ApiConfig.getApiService()
 
-        for (item in items) {
-            val obj = JSONObject()
-            obj.put("id", item.id)
-            obj.put("return_quantity", item.returnQty)
-            itemArray.put(obj)
-        }
+        apiService.addRetur(items).enqueue(object : retrofit2.Callback<ReturResponse> {
+            override fun onResponse(call: Call<ReturResponse>, response: retrofit2.Response<ReturResponse>) {
+                if (response.isSuccessful) {
+                    val message = response.body()?.message ?: "Return sent successfully"
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                    Log.d("Retur", "Success: $message")
+                } else {
+                    Toast.makeText(requireContext(), "Failed to send return data", Toast.LENGTH_SHORT).show()
+                    Log.e("Retur", "Error response: ${response.errorBody()?.string()}")
+                }
+            }
 
-        requestBody.put("items", itemArray)
-
-        // Implement your Retrofit call here
-        Log.d("Retur", "Sending retur: $requestBody")
+            override fun onFailure(call: Call<ReturResponse>, t: Throwable) {
+                Toast.makeText(requireContext(), "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
+                Log.e("Retur", "Network error", t)
+            }
+        })
     }
 }

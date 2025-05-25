@@ -5,5 +5,10 @@ data class ReturItem(
     val name: String,
     val unitPrice: Double,
     val quantity: Double,
-    var returnQty: Double
+    var returnQty: Double,
+    val order_number: String
+)
+
+data class ReturResponse(
+    val message: String
 )

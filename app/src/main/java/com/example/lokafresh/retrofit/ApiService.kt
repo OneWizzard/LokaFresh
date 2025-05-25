@@ -1,5 +1,7 @@
 package com.example.lokafresh.retrofit
 
+import com.example.lokafresh.ReturItem
+import com.example.lokafresh.ReturResponse
 import com.example.lokafresh.response.AddItemRequest
 import com.example.lokafresh.response.ChatbotRequest
 import com.example.lokafresh.response.ChatbotResponse
@@ -8,7 +10,6 @@ import com.example.lokafresh.response.DoData
 import com.example.lokafresh.response.GenericResponse
 import com.example.lokafresh.response.ItemData
 import com.example.lokafresh.response.OrderIdRequest
-import com.example.lokafresh.response.StoreDOData
 import com.example.lokafresh.response.StoreData
 import com.example.lokafresh.response.TspResponse
 import com.example.lokafresh.response.UpdateDoRequest
@@ -129,6 +130,6 @@ interface ApiService {
 
     ): Call<ResponseBody>
 
-    @GET("webhook/get-store-data")
-    fun getStoreDataByName(@Query("nama") nama: String): Call<StoreDOData>
+    @POST("webhook/add-ro")
+    fun addRetur(@Body returItems: List<ReturItem>): Call<ReturResponse>
 }
