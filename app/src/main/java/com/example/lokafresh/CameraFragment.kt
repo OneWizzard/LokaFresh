@@ -32,9 +32,11 @@ class CameraFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var scannerLauncher: ActivityResultLauncher<IntentSenderRequest>
+    private lateinit var loadingDialog: LoadingDialog
+
     private val options = GmsDocumentScannerOptions.Builder()
         .setGalleryImportAllowed(false)
-        .setPageLimit(5)  // Ambil hingga 5 halaman jika diperlukan
+        .setPageLimit(5)
         .setResultFormats(
             GmsDocumentScannerOptions.RESULT_FORMAT_JPEG,
             GmsDocumentScannerOptions.RESULT_FORMAT_PDF
@@ -53,28 +55,24 @@ class CameraFragment : Fragment() {
                 scanResult?.getPages()?.let { pages ->
                     val pageBitmaps = mutableListOf<Bitmap>()
                     for (page in pages) {
-                        val imageUri = page.getImageUri()
+                        val imageUri = page.imageUri
                         Log.d("DocumentScanner", "Scanned Image URI: $imageUri")
                         try {
                             val inputStream = requireContext().contentResolver.openInputStream(imageUri)
                             val bitmap = BitmapFactory.decodeStream(inputStream)
-                            pageBitmaps.add(bitmap)
+                            if (bitmap != null) pageBitmaps.add(bitmap)
                             inputStream?.close()
                         } catch (e: Exception) {
                             Log.e("DocumentScanner", "Error loading scanned image: ${e.message}")
                         }
                     }
 
-                    // Kirim gambar-gambar yang dipindai ke backend
                     sendScanToBackend(pageBitmaps)
-
-                    // Setelah selesai scanning, balik ke OrderFragment
-                    moveToOrderFragment()
-
                 }
             } else {
                 Log.d("DocumentScanner", "Scanning cancelled or failed")
-                moveToOrderFragment() // Kalau gagal/cancel scanning, juga balik ke OrderFragment
+                loadingDialog.dismiss()
+                moveToOrderFragment()
             }
         }
     }
@@ -84,6 +82,7 @@ class CameraFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCameraBinding.inflate(inflater, container, false)
+        loadingDialog = LoadingDialog(requireContext())
         return binding.root
     }
 
@@ -94,13 +93,18 @@ class CameraFragment : Fragment() {
 
     private fun startDocumentScan() {
         Log.d("CameraFragment", "startDocumentScan called")
+        loadingDialog.show("Memulai pemindaian...")
+
         scanner.getStartScanIntent(requireActivity())
             .addOnSuccessListener { intentSender ->
+                loadingDialog.dismiss()
                 val intentSenderRequest = IntentSenderRequest.Builder(intentSender).build()
                 scannerLauncher.launch(intentSenderRequest)
             }
             .addOnFailureListener { e ->
+                loadingDialog.dismiss()
                 Log.e("DocumentScanner", "Error starting scan intent: ${e.message}")
+                moveToOrderFragment()
             }
     }
 
@@ -112,30 +116,27 @@ class CameraFragment : Fragment() {
     }
 
     private fun sendScanToBackend(pages: List<Bitmap>) {
+        loadingDialog.show("Mengirim data hasil scan...")
+
         val apiService = ApiConfig.getApiService()
 
-        // Ambil username dari SharedPreferences
         val sharedPreferences = requireContext().getSharedPreferences("user_session", Context.MODE_PRIVATE)
         val username = sharedPreferences.getString("fullname", null)
 
         if (username == null) {
+            loadingDialog.dismiss()
             Log.e("DocumentScanner", "Username tidak ditemukan di SharedPreferences")
             return
         }
 
-        // Mengonversi setiap halaman gambar menjadi Base64 dan mengumpulkannya dalam list
-        val base64Images = pages.map { pageBitmap ->
-            encodeBitmapToBase64(pageBitmap)
-        }
+        val base64Images = pages.map { encodeBitmapToBase64(it) }
 
-        // Membungkus list base64 dalam request body
-        val imageListRequest = ImageListRequest(
-            imgs = base64Images // List base64 string gambar
-        )
+        val imageListRequest = ImageListRequest(imgs = base64Images)
 
         apiService.uploadScan(imageListRequest)
             .enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                    loadingDialog.dismiss()
                     if (response.isSuccessful) {
                         val responseBody = response.body()?.string()
                         val returFragment = ReturFragment().apply {
@@ -148,25 +149,23 @@ class CameraFragment : Fragment() {
                             .commit()
                         Log.d("DocumentScanner", "Scan uploaded successfully. Response: $responseBody")
                     } else {
-                        val errorBody = response.errorBody()?.string()
-                        Log.e("DocumentScanner", "Failed to upload scan: $errorBody")
-                        // Tambahkan log status code untuk debugging
+                        Log.e("DocumentScanner", "Failed to upload scan: ${response.errorBody()?.string()}")
                         Log.e("DocumentScanner", "Response Code: ${response.code()}")
+                        moveToOrderFragment()
                     }
                 }
 
                 override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                    Log.e("DocumentScanner", "Error uploading scan: ${t.message}")
-                    // Tambahkan log exception lengkap untuk debugging
-                    Log.e("DocumentScanner", "Error details:", t)
+                    loadingDialog.dismiss()
+                    Log.e("DocumentScanner", "Error uploading scan: ${t.message}", t)
+                    moveToOrderFragment()
                 }
             })
-
     }
 
     private fun moveToOrderFragment() {
         parentFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, OrderFragment()) // Ganti fragment_container sesuai ID container kamu
+            .replace(R.id.fragment_container, OrderFragment())
             .commit()
     }
 
