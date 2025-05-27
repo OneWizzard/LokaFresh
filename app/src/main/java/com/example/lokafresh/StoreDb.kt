@@ -99,6 +99,8 @@ class StoreDb : Fragment() {
         ApiConfig.getApiService().createStore(nama, link)
             .enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                    if (!isAdded) return  // Fragment sudah tidak aktif
+
                     if (response.isSuccessful) {
                         Toast.makeText(requireContext(), "Store berhasil ditambahkan", Toast.LENGTH_SHORT).show()
                         fetchStores()
@@ -108,15 +110,19 @@ class StoreDb : Fragment() {
                 }
 
                 override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    if (!isAdded) return
                     Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })
     }
 
+
     private fun updateStore(nama: String, link: String) {
         ApiConfig.getApiService().updateStore(nama, link)
             .enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                    if (!isAdded) return
+
                     if (response.isSuccessful) {
                         Toast.makeText(requireContext(), "Store berhasil diperbarui", Toast.LENGTH_SHORT).show()
                         fetchStores()
@@ -126,6 +132,7 @@ class StoreDb : Fragment() {
                 }
 
                 override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    if (!isAdded) return
                     Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })
@@ -143,24 +150,40 @@ class StoreDb : Fragment() {
 
                 ApiConfig.getApiService().deleteStore(Id)
                     .enqueue(object : Callback<ResponseBody> {
-                        override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                        override fun onResponse(
+                            call: Call<ResponseBody>,
+                            response: Response<ResponseBody>
+                        ) {
+                            if (!isAdded) return
                             progressDialog.dismiss()
                             if (response.isSuccessful) {
-                                Toast.makeText(requireContext(), "Store berhasil dihapus", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Store berhasil dihapus",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                                 fetchStores()
                             } else {
-                                Toast.makeText(requireContext(), "Gagal menghapus store", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Gagal menghapus store",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         }
 
                         override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                            if (!isAdded) return
                             progressDialog.dismiss()
-                            Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                requireContext(),
+                                "Error: ${t.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     })
+
                 dialog.dismiss()
             }
-            .setNegativeButton("Batal") { dialog, _ -> dialog.dismiss() }
-            .show()
     }
-    }
+            }

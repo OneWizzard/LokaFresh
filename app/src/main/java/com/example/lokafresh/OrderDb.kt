@@ -61,10 +61,14 @@ class OrderDb : Fragment() {
 
         apiService.getUserData().enqueue(object : Callback<List<User>> {
             override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
+                Log.d("OrderDb", "getUserData response code: ${response.code()}")
                 if (response.isSuccessful) {
                     userList = response.body() ?: listOf()
+                    Log.d("OrderDb", "getUserData response body: $userList")
                     isUserReady = true
                     if (isStoreReady) fetchOrders()
+                } else {
+                    Log.e("OrderDb", "getUserData failed with code: ${response.code()}")
                 }
             }
 
@@ -75,10 +79,14 @@ class OrderDb : Fragment() {
 
         apiService.getAllStoreData().enqueue(object : Callback<List<StoreData>> {
             override fun onResponse(call: Call<List<StoreData>>, response: Response<List<StoreData>>) {
+                Log.d("OrderDb", "getAllStoreData response code: ${response.code()}")
                 if (response.isSuccessful) {
                     storeList = response.body() ?: listOf()
+                    Log.d("OrderDb", "getAllStoreData response body: $storeList")
                     isStoreReady = true
                     if (isUserReady) fetchOrders()
+                } else {
+                    Log.e("OrderDb", "getAllStoreData failed with code: ${response.code()}")
                 }
             }
 
@@ -91,25 +99,29 @@ class OrderDb : Fragment() {
     private fun fetchOrders() {
         apiService.getDoData().enqueue(object : Callback<List<DoData>> {
             override fun onResponse(call: Call<List<DoData>>, response: Response<List<DoData>>) {
+                Log.d("OrderDb", "getDoData response code: ${response.code()}")
                 if (response.isSuccessful) {
                     val orders = response.body() ?: emptyList()
+                    Log.d("OrderDb", "getDoData response body: $orders")
                     if (!::orderAdapter.isInitialized) {
                         orderAdapter = OrderAdapter(
                             orders,
                             storeList,
                             ::deleteOrder,
                             ::updateOrder,
-                            ::openDetailFragment  // Tambahan klik item
+                            ::openDetailFragment
                         )
                         recyclerView.adapter = orderAdapter
                     } else {
                         orderAdapter.updateData(orders, storeList)
                     }
+                } else {
+                    Log.e("OrderDb", "getDoData failed with code: ${response.code()}")
                 }
             }
 
             override fun onFailure(call: Call<List<DoData>>, t: Throwable) {
-                Log.e("OrderDb", "Failed to fetch data: ${t.message}")
+                Log.e("OrderDb", "Failed to fetch orders: ${t.message}")
             }
         })
     }
@@ -121,7 +133,7 @@ class OrderDb : Fragment() {
         detailFragment.arguments = bundle
 
         parentFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container_view, detailFragment) // Pastikan ada container ini di Activity/Fragment host
+            .replace(R.id.fragment_container_view, detailFragment)
             .addToBackStack(null)
             .commit()
     }
@@ -146,7 +158,7 @@ class OrderDb : Fragment() {
         AlertDialog.Builder(requireContext())
             .setTitle("Tambah Order")
             .setView(dialogView)
-            .setPositiveButton("Simpan", null) // override nanti di setOnShowListener
+            .setPositiveButton("Simpan", null)
             .setNegativeButton("Batal", null)
             .create()
             .also { dialog ->
@@ -172,18 +184,21 @@ class OrderDb : Fragment() {
 
                             apiService.createDo(request).enqueue(object : Callback<GenericResponse> {
                                 override fun onResponse(call: Call<GenericResponse>, response: Response<GenericResponse>) {
+                                    Log.d("OrderDb", "createDo response code: ${response.code()}")
                                     if (response.isSuccessful) {
+                                        Log.d("OrderDb", "createDo response body: ${response.body()}")
                                         Toast.makeText(context, "Order ditambahkan", Toast.LENGTH_SHORT).show()
                                         fetchOrders()
                                         dialog.dismiss()
-                                        // Setelah order berhasil dibuat, langsung tampilkan dialog tambah barang
                                         showAddItemDialog(newOrderId)
                                     } else {
+                                        Log.e("OrderDb", "createDo failed with code: ${response.code()}")
                                         Toast.makeText(context, "Gagal menambahkan order", Toast.LENGTH_SHORT).show()
                                     }
                                 }
 
                                 override fun onFailure(call: Call<GenericResponse>, t: Throwable) {
+                                    Log.e("OrderDb", "createDo failure: ${t.message}")
                                     Toast.makeText(context, "Gagal menambahkan order", Toast.LENGTH_SHORT).show()
                                 }
                             })
@@ -202,27 +217,6 @@ class OrderDb : Fragment() {
         val spinnerItems = dialogView.findViewById<Spinner>(R.id.spinnerItems)
         val edtQuantity = dialogView.findViewById<EditText>(R.id.edtQuantity)
 
-        apiService.getListItems().enqueue(object : Callback<List<ItemData>> {
-            override fun onResponse(call: Call<List<ItemData>>, response: Response<List<ItemData>>) {
-                if (response.isSuccessful) {
-                    val items = response.body() ?: emptyList()
-                    val itemNames = items.map { it.name }
-
-                    val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, itemNames)
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                    spinnerItems.adapter = adapter
-
-                    spinnerItems.tag = items
-                } else {
-                    Toast.makeText(context, "Gagal mengambil daftar barang", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onFailure(call: Call<List<ItemData>>, t: Throwable) {
-                Toast.makeText(context, "Gagal mengambil daftar barang: ${t.message}", Toast.LENGTH_SHORT).show()
-            }
-        })
-
         val dialog = AlertDialog.Builder(requireContext())
             .setTitle("Tambah Barang")
             .setView(dialogView)
@@ -234,48 +228,87 @@ class OrderDb : Fragment() {
             val btnSave = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
             val btnCancel = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
 
+            btnSave.isEnabled = false
+
+            apiService.getListItems().enqueue(object : Callback<List<itemsData>> {
+                override fun onResponse(call: Call<List<itemsData>>, response: Response<List<itemsData>>) {
+                    Log.d("OrderDb", "getListItems response code: ${response.code()}")
+                    if (response.isSuccessful) {
+                        val items = response.body() ?: emptyList()
+                        Log.d("OrderDb", "getListItems response body: $items")
+                        if (items.isEmpty()) {
+                            Toast.makeText(context, "Daftar barang kosong", Toast.LENGTH_SHORT).show()
+                            dialog.dismiss()
+                            return
+                        }
+
+                        val itemNames = items.map { it.nama  ?: "Nama tidak tersedia" }
+                        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, itemNames)
+                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                        spinnerItems.adapter = adapter
+
+                        spinnerItems.tag = items
+
+                        btnSave.isEnabled = true
+                        btnSave.isEnabled = true
+                    } else {
+                        Log.e("OrderDb", "getListItems failed with code: ${response.code()}")
+                        Toast.makeText(context, "Gagal mengambil daftar barang", Toast.LENGTH_SHORT).show()
+                        dialog.dismiss()
+                    }
+                }
+
+                override fun onFailure(call: Call<List<itemsData>>, t: Throwable) {
+                    Log.e("OrderDb", "getListItems failure: ${t.message}")
+                    Toast.makeText(context, "Gagal mengambil daftar barang: ${t.message}", Toast.LENGTH_SHORT).show()
+                    dialog.dismiss()
+                }
+            })
+
             btnSave.setOnClickListener {
                 val quantityStr = edtQuantity.text.toString().trim()
-                val quantity = quantityStr.toDoubleOrNull() ?: 0.0
+                val quantity = quantityStr.toDoubleOrNull()
 
-                val selectedItemPosition = spinnerItems.selectedItemPosition
-                val items = spinnerItems.tag as? List<ItemData>
-
-                if (items == null || items.isEmpty()) {
-                    Toast.makeText(context, "Daftar barang belum tersedia", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-
-                if (selectedItemPosition == AdapterView.INVALID_POSITION) {
-                    Toast.makeText(context, "Pilih barang terlebih dahulu", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-
-                val selectedItem = items[selectedItemPosition]
-
-                if (quantity <= 0) {
+                if (quantity == null || quantity <= 0) {
                     Toast.makeText(context, "Jumlah barang harus lebih dari 0", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
 
+                val items = spinnerItems.tag as? List<itemsData>
+                if (items.isNullOrEmpty()) {
+                    Toast.makeText(context, "Data barang belum tersedia", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                val selectedIndex = spinnerItems.selectedItemPosition
+                if (selectedIndex < 0 || selectedIndex >= items.size) {
+                    Toast.makeText(context, "Pilih barang yang valid", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                val selectedItem = items[selectedIndex]
                 val itemRequest = AddItemRequest(
                     order_id = orderId,
-                    nama = selectedItem.name,
+                    nama = selectedItem.nama,
                     quantity = quantity
                 )
 
                 apiService.addItem(itemRequest).enqueue(object : Callback<GenericResponse> {
                     override fun onResponse(call: Call<GenericResponse>, response: Response<GenericResponse>) {
+                        Log.d("OrderDb", "addItem response code: ${response.code()}")
                         if (response.isSuccessful) {
+                            Log.d("OrderDb", "addItem response body: ${response.body()}")
                             Toast.makeText(context, "Barang berhasil ditambahkan", Toast.LENGTH_SHORT).show()
                             edtQuantity.text.clear()
                         } else {
+                            Log.e("OrderDb", "addItem failed with code: ${response.code()}")
                             Toast.makeText(context, "Gagal menambahkan barang", Toast.LENGTH_SHORT).show()
                         }
                     }
 
                     override fun onFailure(call: Call<GenericResponse>, t: Throwable) {
-                        Toast.makeText(context, "Gagal menambahkan barang", Toast.LENGTH_SHORT).show()
+                        Log.e("OrderDb", "addItem failure: ${t.message}")
+                        Toast.makeText(context, "Gagal menambahkan barang: ${t.message}", Toast.LENGTH_SHORT).show()
                     }
                 })
             }
@@ -302,16 +335,20 @@ class OrderDb : Fragment() {
                 apiService.deleteDo(order.order_id).enqueue(object : Callback<GenericResponse> {
                     override fun onResponse(call: Call<GenericResponse>, response: Response<GenericResponse>) {
                         progressDialog.dismiss()
+                        Log.d("OrderDb", "deleteDo response code: ${response.code()}")
                         if (response.isSuccessful) {
+                            Log.d("OrderDb", "deleteDo response body: ${response.body()}")
                             Toast.makeText(context, "Order berhasil dihapus", Toast.LENGTH_SHORT).show()
                             fetchOrders()
                         } else {
+                            Log.e("OrderDb", "deleteDo failed with code: ${response.code()}")
                             Toast.makeText(context, "Gagal menghapus order", Toast.LENGTH_SHORT).show()
                         }
                     }
 
                     override fun onFailure(call: Call<GenericResponse>, t: Throwable) {
                         progressDialog.dismiss()
+                        Log.e("OrderDb", "deleteDo failure: ${t.message}")
                         Toast.makeText(context, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
                     }
                 })
@@ -320,8 +357,6 @@ class OrderDb : Fragment() {
             .setNegativeButton("Batal") { dialog, _ -> dialog.dismiss() }
             .show()
     }
-
-
 
     private fun updateOrder(order: DoData) {
         // Implement update order jika perlu

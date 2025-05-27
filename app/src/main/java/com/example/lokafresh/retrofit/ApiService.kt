@@ -16,6 +16,7 @@ import com.example.lokafresh.response.UpdateDoRequest
 import com.example.lokafresh.response.User
 import com.example.lokafresh.response.UsernameCheckResponse
 import com.example.lokafresh.response.UsernameRequest
+import com.example.lokafresh.response.itemsData
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body
@@ -92,7 +93,7 @@ interface ApiService {
     ): Call<GenericResponse>
 
     @GET("webhook/get-list-items")
-    fun getListItems(): Call<List<ItemData>>
+    fun getListItems(): Call<List<itemsData>>
 
     @GET("webhook/get-do-item")
     fun getDoItem(@Query("order_id") orderId: String): Call<List<ItemData>>
@@ -116,7 +117,7 @@ interface ApiService {
 
     ): Call<ResponseBody>
 
-    @DELETE("webhook-test/delete-store")
+    @DELETE("webhook/delete-store")
     fun deleteStore(
         @Query("id") nama: Int
     ): Call<ResponseBody>

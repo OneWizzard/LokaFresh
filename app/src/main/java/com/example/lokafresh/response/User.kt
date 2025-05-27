@@ -89,6 +89,13 @@ data class ItemData(
     val unit_price: Int,
     val unit_metrics: String
 )
+
+
+data class itemsData(
+    val nama: String,
+    val unit_metrics: String,
+    val price: Int,
+)
 data class ListItem(
     val icon: Int,
     val title: String,
