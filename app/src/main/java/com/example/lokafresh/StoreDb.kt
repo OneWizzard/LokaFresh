@@ -3,6 +3,7 @@ package com.example.lokafresh
 import android.app.AlertDialog
 import android.app.ProgressDialog
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.EditText
 import android.widget.Toast
@@ -51,13 +52,17 @@ class StoreDb : Fragment() {
     private fun fetchStores() {
         val client = ApiConfig.getApiService().getAllStoreData()
         client.enqueue(object : Callback<List<StoreData>> {
-            override fun onResponse(call: Call<List<StoreData>>, response: Response<List<StoreData>>) {
+            override fun onResponse(
+                call: Call<List<StoreData>>,
+                response: Response<List<StoreData>>
+            ) {
                 if (response.isSuccessful) {
                     storeList.clear()
                     response.body()?.let { storeList.addAll(it) }
                     storeAdapter.notifyDataSetChanged()
                 } else {
-                    Toast.makeText(requireContext(), "Gagal mengambil data", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Gagal mengambil data", Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
 
@@ -68,7 +73,8 @@ class StoreDb : Fragment() {
     }
 
     private fun showStoreDialog(isUpdate: Boolean = false, store: StoreData? = null) {
-        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_store_input, null)
+        val dialogView =
+            LayoutInflater.from(requireContext()).inflate(R.layout.dialog_store_input, null)
         val etNama = dialogView.findViewById<EditText>(R.id.etNama)
         val etLink = dialogView.findViewById<EditText>(R.id.etLink)
 
@@ -88,7 +94,8 @@ class StoreDb : Fragment() {
                     if (isUpdate) updateStore(nama, link)
                     else createStore(nama, link)
                 } else {
-                    Toast.makeText(requireContext(), "Field tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Field tidak boleh kosong", Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
             .setNegativeButton("Batal", null)
@@ -98,20 +105,32 @@ class StoreDb : Fragment() {
     private fun createStore(nama: String, link: String) {
         ApiConfig.getApiService().createStore(nama, link)
             .enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                override fun onResponse(
+                    call: Call<ResponseBody>,
+                    response: Response<ResponseBody>
+                ) {
                     if (!isAdded) return  // Fragment sudah tidak aktif
 
                     if (response.isSuccessful) {
-                        Toast.makeText(requireContext(), "Store berhasil ditambahkan", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(),
+                            "Store berhasil ditambahkan",
+                            Toast.LENGTH_SHORT
+                        ).show()
                         fetchStores()
                     } else {
-                        Toast.makeText(requireContext(), "Gagal menambahkan store", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(),
+                            "Gagal menambahkan store",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
 
                 override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                     if (!isAdded) return
-                    Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT)
+                        .show()
                 }
             })
     }
@@ -120,25 +139,36 @@ class StoreDb : Fragment() {
     private fun updateStore(nama: String, link: String) {
         ApiConfig.getApiService().updateStore(nama, link)
             .enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                override fun onResponse(
+                    call: Call<ResponseBody>,
+                    response: Response<ResponseBody>
+                ) {
                     if (!isAdded) return
 
                     if (response.isSuccessful) {
-                        Toast.makeText(requireContext(), "Store berhasil diperbarui", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(),
+                            "Store berhasil diperbarui",
+                            Toast.LENGTH_SHORT
+                        ).show()
                         fetchStores()
                     } else {
-                        Toast.makeText(requireContext(), "Gagal update store", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "Gagal update store", Toast.LENGTH_SHORT)
+                            .show()
                     }
                 }
 
                 override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                     if (!isAdded) return
-                    Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT)
+                        .show()
                 }
             })
     }
 
     private fun deleteStore(Id: Int) {
+        Log.d("StoreDb", "deleteStore called with Id=$Id")  // Log awal fungsi dipanggil
+
         AlertDialog.Builder(requireContext())
             .setTitle("Konfirmasi Hapus")
             .setMessage("Apakah Anda yakin ingin menghapus store ini?")
@@ -154,9 +184,17 @@ class StoreDb : Fragment() {
                             call: Call<ResponseBody>,
                             response: Response<ResponseBody>
                         ) {
-                            if (!isAdded) return
+                            Log.d(
+                                "StoreDb",
+                                "deleteStore onResponse called, success=${response.isSuccessful}"
+                            )
+                            if (!isAdded) {
+                                Log.d("StoreDb", "Fragment not added, returning")
+                                return
+                            }
                             progressDialog.dismiss()
                             if (response.isSuccessful) {
+                                Log.d("StoreDb", "Store berhasil dihapus")
                                 Toast.makeText(
                                     requireContext(),
                                     "Store berhasil dihapus",
@@ -164,6 +202,7 @@ class StoreDb : Fragment() {
                                 ).show()
                                 fetchStores()
                             } else {
+                                Log.d("StoreDb", "Gagal menghapus store, code: ${response.code()}")
                                 Toast.makeText(
                                     requireContext(),
                                     "Gagal menghapus store",
@@ -173,7 +212,11 @@ class StoreDb : Fragment() {
                         }
 
                         override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                            if (!isAdded) return
+                            Log.e("StoreDb", "deleteStore onFailure: ${t.message}")
+                            if (!isAdded) {
+                                Log.d("StoreDb", "Fragment not added, returning")
+                                return
+                            }
                             progressDialog.dismiss()
                             Toast.makeText(
                                 requireContext(),
@@ -185,5 +228,7 @@ class StoreDb : Fragment() {
 
                 dialog.dismiss()
             }
+            .setNegativeButton("Batal", null)
+            .show()
     }
-            }
+}

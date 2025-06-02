@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="@color/white">
 
-    <!-- Header Background Rounded -->
     <View
         android:id="@+id/bg_circle"
         android:layout_width="match_parent"
@@ -17,7 +16,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Greeting -->
     <TextView
         android:id="@+id/tv_greeting"
         android:layout_width="wrap_content"
@@ -32,7 +30,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Subtext -->
     <TextView
         android:id="@+id/tv_subtext"
         android:layout_width="wrap_content"
@@ -45,21 +42,16 @@
         app:layout_constraintTop_toBottomOf="@id/tv_greeting"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Profile Image -->
     <ImageView
         android:id="@+id/iv_profile"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:src="@drawable/baseline_person_24"
-        android:background="@drawable/bg_circle_avatar"
-        android:scaleType="centerCrop"
+        android:src="@drawable/baseline_person_24"  android:background="@drawable/bg_circle_avatar" android:scaleType="centerCrop"
         android:layout_marginEnd="24dp"
         android:elevation="3dp"
         app:layout_constraintTop_toTopOf="@id/tv_greeting"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:tint="#d2f8d2" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Title Today's Plan -->
     <TextView
         android:id="@+id/tv_today_plan"
         android:layout_width="wrap_content"
@@ -74,7 +66,6 @@
         app:layout_constraintTop_toBottomOf="@id/tv_subtext"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Horizontal ScrollView with Cards -->
     <HorizontalScrollView
         android:id="@+id/card_container_scroll"
         android:layout_width="match_parent"
@@ -93,7 +84,6 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <!-- Card: Jumlah Pesanan -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_jumlah_pesanan"
                 android:layout_width="200dp"
@@ -140,7 +130,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Card: Sudah Diantar -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_sudah_diantar"
                 android:layout_width="200dp"

@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     kotlin("plugin.serialization")
+    id("org.jetbrains.kotlin.kapt")
+
 }
 
 android {
@@ -79,6 +81,10 @@ dependencies {
     implementation (libs.androidx.camera.lifecycle)
     implementation (libs.androidx.camera.view.v130)
     implementation (libs.material.v1110)
+    implementation (libs.glide)
+    kapt(libs.compiler)
+
+
 
 }
 
