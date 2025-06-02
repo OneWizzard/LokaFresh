@@ -30,7 +30,6 @@ data class CreateDoRequest(
 )
 
 data class UpdateDoRequest(
-    val order_id: String,
     val order_number: String,
     val username: String,
     val destination: String,
@@ -54,8 +53,10 @@ data class DoData(
     val username: String,
     val destination: String,
     val delivered: Int,
-    val date: String
+    val date: String,
+    val is_signed: Int
 )
+
 data class StoreData(
     @SerializedName("id")
     val id: Int,

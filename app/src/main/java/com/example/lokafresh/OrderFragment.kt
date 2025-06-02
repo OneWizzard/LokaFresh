@@ -123,7 +123,7 @@ class OrderFragment : Fragment(), OrderItemAdapter.OnItemClickListener {
                                         icon = R.drawable.baseline_location_pin_24,
                                         title = "Order #: ${doData.order_number}",
                                         subtitle = "Tujuan: $storeName",
-                                        description = if (doData.delivered == 1) "Status: Sudah dikirim" else "Status: Belum dikirim",
+                                        description = if (doData.is_signed == 1) "Status: Sudah ditanda tangan" else "Status: Belum ditanda tangan",
                                         isChecked = doData.delivered == 1
                                     )
                                     dataList.add(listItem)
