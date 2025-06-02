@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.lokafresh.databinding.FragmentReturBinding
@@ -30,7 +31,10 @@ class ReturFragment : Fragment() {
             return
         }
 
-        val itemList = parseScanResponse(responseJson)
+        val sharedPreferences = requireContext().getSharedPreferences("user_session", AppCompatActivity.MODE_PRIVATE)
+        val username = sharedPreferences.getString("username", "") ?: ""
+
+        val itemList = parseScanResponse(responseJson, username)
         adapter = ReturAdapter(itemList)
         binding.rvRetur.layoutManager = LinearLayoutManager(requireContext())
         binding.rvRetur.adapter = adapter
@@ -41,24 +45,42 @@ class ReturFragment : Fragment() {
         }
     }
 
-    private fun parseScanResponse(json: String): List<ReturItem> {
-        val jsonObject = JSONObject(json)
-        val itemsArray = jsonObject.getJSONArray("items")
-        val orderNumber = jsonObject.getString("order_number")
+
+    private fun parseScanResponse(responseJson: String, username: String): List<ReturItem> {
         val itemList = mutableListOf<ReturItem>()
 
-        for (i in 0 until itemsArray.length()) {
-            val item = itemsArray.getJSONObject(i)
-            itemList.add(
-                ReturItem(
+        try {
+            val json = JSONObject(responseJson)
+            val orderNumber = json.getString("order_number")
+            val customerName = json.getJSONObject("customer").getString("name")
+            val isSigned = json.getBoolean("is_signed")
+            val itemsArray = json.getJSONArray("items")
+
+            // Set teks ke UI
+            binding.tvOrderNumber.text = orderNumber
+            binding.tvCustomerName.text = customerName
+            binding.spinnerSigned.setSelection(if (isSigned) 1 else 0)
+
+            for (i in 0 until itemsArray.length()) {
+                val item = itemsArray.getJSONObject(i)
+                val fulfillment = item.getJSONObject("fulfillment_quantity")
+
+                val returItem = ReturItem(
                     id = item.getInt("id"),
+                    order_number = orderNumber,
                     name = item.getString("name"),
-                    unitPrice = item.getDouble("unit_price"),
+                    unitPrice = item.getInt("unit_price"),
                     quantity = item.getDouble("quantity"),
-                    returnQty = 0.0, // default user input
-                    order_number = orderNumber
+                    returnQty = 0.0, // Default value
+                    store_name = customerName,
+                    username = username, // Bisa ambil dari SharedPref kalau perlu
+                    is_signed = isSigned,
                 )
-            )
+                itemList.add(returItem)
+            }
+
+        } catch (e: Exception) {
+            Log.e("ReturFragment", "Failed to parse scan response: ${e.message}")
         }
 
         return itemList
@@ -70,12 +92,18 @@ class ReturFragment : Fragment() {
         apiService.addRetur(items).enqueue(object : retrofit2.Callback<ReturResponse> {
             override fun onResponse(call: Call<ReturResponse>, response: retrofit2.Response<ReturResponse>) {
                 if (response.isSuccessful) {
-                    val message = response.body()?.message ?: "Return sent successfully"
-                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                    Log.d("Retur", "Success: $message")
+                    val body = response.body()
+                    if (body != null) {
+                        Toast.makeText(requireContext(), body.message, Toast.LENGTH_SHORT).show()
+                        Log.d("Retur", "Success: ${body.message}")
+                    } else {
+                        Toast.makeText(requireContext(), "Return sent, but no message", Toast.LENGTH_SHORT).show()
+                        Log.d("Retur", "Success: empty body")
+                    }
                 } else {
-                    Toast.makeText(requireContext(), "Failed to send return data", Toast.LENGTH_SHORT).show()
-                    Log.e("Retur", "Error response: ${response.errorBody()?.string()}")
+                    val errorBody = response.errorBody()?.string()
+                    Toast.makeText(requireContext(), "Failed: $errorBody", Toast.LENGTH_SHORT).show()
+                    Log.e("Retur", "Error: $errorBody")
                 }
             }
 

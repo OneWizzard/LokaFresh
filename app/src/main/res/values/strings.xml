@@ -5,4 +5,9 @@
     <string name="choose_store">Pilih toko</string>
     <string name="choose_user">Pilih User</string>
 
+    <string-array name="signed_options">
+        <item>false</item>
+        <item>true</item>
+    </string-array>
+
 </resources>

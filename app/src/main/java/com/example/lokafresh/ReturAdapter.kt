@@ -5,6 +5,8 @@ import android.view.ViewGroup
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lokafresh.databinding.ItemReturBinding
+import java.text.NumberFormat
+import java.util.Locale
 
 class ReturAdapter(
     private val items: List<ReturItem>
@@ -21,14 +23,20 @@ class ReturAdapter(
         val item = items[position]
         with(holder.binding) {
             tvName.text = item.name
-            etQuantity.setText(item.quantity.toString())
+            tvQuantity.text = item.quantity.toString()
             etReturn.setText(item.returnQty.toString())
-            tvUnitPrice.text = item.unitPrice.toString()
-            tvTotal.text = (item.unitPrice * item.quantity).toString()
+            tvUnitPrice.text = formatCurrency(item.unitPrice)
 
-            // Update returnQty saat user input
+            val totalHarga = (item.quantity - item.returnQty) * item.unitPrice
+            tvTotal.text = formatCurrency(totalHarga)
+
             etReturn.doAfterTextChanged {
-                item.returnQty = it.toString().toDoubleOrNull() ?: 0.0
+                val inputQty = it.toString().toDoubleOrNull() ?: 0.0
+                item.returnQty = inputQty
+
+                // Update total saat return diubah
+                val newTotal = (item.quantity - inputQty) * item.unitPrice
+                tvTotal.text = formatCurrency(newTotal)
             }
         }
     }
@@ -36,4 +44,14 @@ class ReturAdapter(
     override fun getItemCount(): Int = items.size
 
     fun getUpdatedItems(): List<ReturItem> = items
+
+    private fun formatCurrency(amount: Double): String {
+        val format = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
+        return format.format(amount)
+    }
+
+    private fun formatCurrency(amount: Int): String {
+        val format = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
+        return format.format(amount)
+    }
 }

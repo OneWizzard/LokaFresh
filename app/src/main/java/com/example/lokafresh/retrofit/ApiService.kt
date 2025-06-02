@@ -131,6 +131,6 @@ interface ApiService {
 
     ): Call<ResponseBody>
 
-    @POST("webhook/add-ro")
-    fun addRetur(@Body returItems: List<ReturItem>): Call<ReturResponse>
+    @POST("webhook-test/add-ro")
+    fun addRetur(@Body ReturItem: List<ReturItem>): Call<ReturResponse>
 }
