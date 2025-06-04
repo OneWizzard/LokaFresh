@@ -34,9 +34,11 @@ data class UpdateDoRequest(
     val username: String,
     val destination: String,
     val delivered: Int, // ← sebelumnya Boolean
-    val date: String
 )
 
+data class UpdateDoResponse(
+    val message: String
+)
 
 data class GenericResponse(
     val success: Boolean,

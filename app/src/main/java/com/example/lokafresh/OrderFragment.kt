@@ -17,12 +17,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.lokafresh.response.DoData
 import com.example.lokafresh.response.StoreData
 import com.example.lokafresh.response.TspResponse
+import com.example.lokafresh.response.UpdateDoRequest
+import com.example.lokafresh.response.UpdateDoResponse
 import com.example.lokafresh.response.UsernameRequest
 import com.example.lokafresh.retrofit.ApiConfig
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-
 
 
 class OrderFragment : Fragment(), OrderItemAdapter.OnItemClickListener {
@@ -159,10 +160,43 @@ class OrderFragment : Fragment(), OrderItemAdapter.OnItemClickListener {
 
     }
 
+    private fun updateDeliveryStatusToBackend(orderNumber: String, username: String, destination: String, delivered: Int) {
+        val apiService = ApiConfig.getApiService()
+        val updateRequest = UpdateDoRequest(
+            order_number = orderNumber,
+            username = username,
+            destination = destination,
+            delivered = delivered
+        )
+
+        apiService.updateDo(updateRequest).enqueue(object : Callback<UpdateDoResponse> {
+            override fun onResponse(call: Call<UpdateDoResponse>, response: Response<UpdateDoResponse>) {
+                if (response.isSuccessful) {
+                    Toast.makeText(requireContext(), "Status berhasil diperbarui", Toast.LENGTH_SHORT).show()
+                    Log.d("OrderFragment", "Update status berhasil")
+                } else {
+                    Log.e("OrderFragment", "Gagal update status: ${response.code()} - ${response.message()}")
+                    Toast.makeText(requireContext(), "Gagal update status ke server", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<UpdateDoResponse>, t: Throwable) {
+                Log.e("OrderFragment", "Error update status: ${t.message}")
+                Toast.makeText(requireContext(), "Gagal koneksi ke server", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
 
     override fun onItemClick(position: Int) {
         if (position !in dataList.indices) return
         val item = dataList[position]
+
+        val sharedPreferences = requireContext().getSharedPreferences("user_session", AppCompatActivity.MODE_PRIVATE)
+        val username = sharedPreferences.getString("username", null) ?: return
+
+        val orderNumber = item.title.removePrefix("Order #: ").trim()
+        val storeName = item.subtitle.removePrefix("Tujuan: ").trim()
+        val destination = storeList.find { it.nama == storeName }?.id.toString()
 
         if (item.isChecked) {
             AlertDialog.Builder(requireContext())
@@ -173,6 +207,7 @@ class OrderFragment : Fragment(), OrderItemAdapter.OnItemClickListener {
                     item.description = "Status: Belum dikirim"
                     adapter.notifyItemChanged(position)
                     updateOrderCountsInPrefs()
+                    updateDeliveryStatusToBackend(orderNumber, username, destination, 0)
                 }
                 .setNegativeButton("Batal", null)
                 .show()
@@ -185,6 +220,7 @@ class OrderFragment : Fragment(), OrderItemAdapter.OnItemClickListener {
                     item.description = "Status: Sudah dikirim"
                     adapter.notifyItemChanged(position)
                     updateOrderCountsInPrefs()
+                    updateDeliveryStatusToBackend(orderNumber, username, destination, 1)
                 }
                 .setNegativeButton("Batal", null)
                 .show()

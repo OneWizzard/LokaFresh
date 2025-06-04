@@ -13,6 +13,7 @@ import com.example.lokafresh.response.OrderIdRequest
 import com.example.lokafresh.response.StoreData
 import com.example.lokafresh.response.TspResponse
 import com.example.lokafresh.response.UpdateDoRequest
+import com.example.lokafresh.response.UpdateDoResponse
 import com.example.lokafresh.response.User
 import com.example.lokafresh.response.UsernameCheckResponse
 import com.example.lokafresh.response.UsernameRequest
@@ -78,7 +79,7 @@ interface ApiService {
     fun deleteDo(@Query("order_id") orderId: String): Call<GenericResponse>
 
     @PUT("webhook/update-do")
-    fun updateDo(@Body request: UpdateDoRequest): Call<GenericResponse>
+    fun updateDo(@Body request: UpdateDoRequest): Call<UpdateDoResponse>
 
     @GET("webhook/get-do-user-data")
     fun getDoUser(@Query("username") username: String): Call<List<DoData>>
