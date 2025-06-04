@@ -122,7 +122,7 @@ class OrderFragment : Fragment(), OrderItemAdapter.OnItemClickListener {
                                     // ListItem perlu property isChecked (status delivered)
                                     val listItem = ListItem(
                                         icon = R.drawable.baseline_location_pin_24,
-                                        title = "Order #: ${doData.order_number}",
+                                        title = "Order : ${doData.order_number}",
                                         subtitle = "Tujuan: $storeName",
                                         description = if (doData.is_signed == 1) "Status: Sudah ditanda tangan" else "Status: Belum ditanda tangan",
                                         isChecked = doData.delivered == 1

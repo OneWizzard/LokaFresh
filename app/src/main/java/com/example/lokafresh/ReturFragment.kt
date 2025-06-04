@@ -31,6 +31,8 @@ class ReturFragment : Fragment() {
             return
         }
 
+        (activity as? MainActivity)?.hideNavigationElements()
+
         val sharedPreferences = requireContext().getSharedPreferences("user_session", AppCompatActivity.MODE_PRIVATE)
         val username = sharedPreferences.getString("username", "") ?: ""
 
@@ -57,8 +59,8 @@ class ReturFragment : Fragment() {
             val itemsArray = json.getJSONArray("items")
 
             // Set teks ke UI
-            binding.tvOrderNumber.text = orderNumber
-            binding.tvCustomerName.text = customerName
+            binding.tvOrderNumber.text = "Order Number : $orderNumber"
+            binding.tvCustomerName.text = "Customer : $customerName"
             binding.spinnerSigned.setSelection(if (isSigned) 1 else 0)
 
             for (i in 0 until itemsArray.length()) {
