@@ -102,6 +102,7 @@ class ReturFragment : Fragment() {
                         Toast.makeText(requireContext(), "Return sent, but no message", Toast.LENGTH_SHORT).show()
                         Log.d("Retur", "Success: empty body")
                     }
+                    moveToOrderFragment()
                 } else {
                     val errorBody = response.errorBody()?.string()
                     Toast.makeText(requireContext(), "Failed: $errorBody", Toast.LENGTH_SHORT).show()
@@ -114,5 +115,11 @@ class ReturFragment : Fragment() {
                 Log.e("Retur", "Network error", t)
             }
         })
+    }
+
+    private fun moveToOrderFragment() {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, OrderFragment()) // Ganti fragment_container sesuai ID container kamu
+            .commit()
     }
 }

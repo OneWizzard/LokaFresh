@@ -72,7 +72,7 @@ class CameraFragment : Fragment() {
             } else {
                 Log.d("DocumentScanner", "Scanning cancelled or failed")
                 loadingDialog.dismiss()
-                moveToReturFragment()
+                moveToOrderFragment()
             }
         }
     }
@@ -104,7 +104,7 @@ class CameraFragment : Fragment() {
             .addOnFailureListener { e ->
                 loadingDialog.dismiss()
                 Log.e("DocumentScanner", "Error starting scan intent: ${e.message}")
-                moveToReturFragment()
+                moveToOrderFragment()
             }
     }
 
@@ -151,21 +151,21 @@ class CameraFragment : Fragment() {
                     } else {
                         Log.e("DocumentScanner", "Failed to upload scan: ${response.errorBody()?.string()}")
                         Log.e("DocumentScanner", "Response Code: ${response.code()}")
-                        moveToReturFragment()
+                        moveToOrderFragment()
                     }
                 }
 
                 override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                     loadingDialog.dismiss()
                     Log.e("DocumentScanner", "Error uploading scan: ${t.message}", t)
-                    moveToReturFragment()
+                    moveToOrderFragment()
                 }
             })
     }
 
-    private fun moveToReturFragment() {
+    private fun moveToOrderFragment() {
         parentFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, ReturFragment())
+            .replace(R.id.fragment_container, OrderFragment()) // Ganti fragment_container sesuai ID container kamu
             .commit()
     }
 
