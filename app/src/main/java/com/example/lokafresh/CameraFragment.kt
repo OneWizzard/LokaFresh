@@ -163,12 +163,6 @@ class CameraFragment : Fragment() {
             })
     }
 
-    private fun moveToReturFragment() {
-        parentFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, ReturFragment())
-            .commit()
-    }
-
     private fun moveToOrderFragment() {
         parentFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, OrderFragment()) // Ganti fragment_container sesuai ID container kamu
