@@ -42,15 +42,37 @@
         app:layout_constraintTop_toBottomOf="@id/tv_greeting"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <ImageView
-        android:id="@+id/iv_profile"
+    <!-- FrameLayout sebagai container untuk profil + icon edit -->
+    <FrameLayout
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:src="@drawable/baseline_person_24"  android:background="@drawable/bg_circle_avatar" android:scaleType="centerCrop"
         android:layout_marginEnd="24dp"
-        android:elevation="3dp"
         app:layout_constraintTop_toTopOf="@id/tv_greeting"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Gambar Profil -->
+        <ImageView
+            android:id="@+id/iv_profile"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/baseline_person_24"
+            android:background="@drawable/bg_circle_avatar"
+            android:scaleType="centerCrop"
+            android:elevation="2dp" />
+
+        <!-- Ikon Edit di kanan bawah, agak turun -->
+        <ImageView
+            android:id="@+id/iv_edit_profile"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="bottom|end"
+            android:layout_marginBottom="-6dp"
+            android:background="@drawable/bg_circle_white"
+            android:padding="4dp"
+            android:src="@drawable/baseline_edit_24"
+            app:tint="@color/green"
+            android:elevation="5dp" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/tv_today_plan"
@@ -178,6 +200,8 @@
 
         </LinearLayout>
     </HorizontalScrollView>
+
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_logout"
         android:layout_width="60dp"

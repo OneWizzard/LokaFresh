@@ -83,6 +83,12 @@ dependencies {
     implementation (libs.material.v1110)
     implementation (libs.glide)
     kapt(libs.compiler)
+    implementation(libs.androidx.room.runtime)
+    kapt(libs.androidx.room.compiler)
+
+    implementation(libs.lifecycle.livedata.ktx)
+
+    implementation(libs.androidx.room.ktx)
 
 
 

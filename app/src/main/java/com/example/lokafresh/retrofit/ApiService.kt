@@ -3,6 +3,7 @@ package com.example.lokafresh.retrofit
 import com.example.lokafresh.ReturItem
 import com.example.lokafresh.ReturResponse
 import com.example.lokafresh.response.AddItemRequest
+import com.example.lokafresh.response.CariStoreResponse
 import com.example.lokafresh.response.ChatbotRequest
 import com.example.lokafresh.response.ChatbotResponse
 import com.example.lokafresh.response.CreateDoRequest
@@ -109,29 +110,37 @@ interface ApiService {
     @GET("webhook/get-all-store-data")
     fun getAllStoreData(): Call<List<StoreData>>
 
-    @POST("webhook/create-store")
+
     @FormUrlEncoded
+    @POST("webhook/create-store")
     fun createStore(
-
         @Field("nama") nama: String,
-        @Field("link") link: String
+        @Field("latitude") latitude: Double,
+        @Field("longitude") longitude: Double
+    ): Call<StoreData>
 
-    ): Call<ResponseBody>
+
+
+    @GET("webhook/cari-store")
+    fun cariStore(@Query("nama") nama: String): Call<List<CariStoreResponse>>
+
 
     @DELETE("webhook/delete-store")
     fun deleteStore(
         @Query("id") nama: Int
     ): Call<ResponseBody>
 
-    @PUT("webhook/update-store")
+    @PUT("update-store")
     @FormUrlEncoded
     fun updateStore(
-
         @Field("nama") nama: String,
-        @Field("link") link: String
-
+        @Field("alamat") alamat: String,
+        @Field("linkMaps") linkMaps: String
     ): Call<ResponseBody>
+
 
     @POST("webhook/add-ro")
     fun addRetur(@Body ReturItem: List<ReturItem>): Call<ReturResponse>
+
+
 }

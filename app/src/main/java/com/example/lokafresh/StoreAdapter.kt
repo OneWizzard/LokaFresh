@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.lokafresh.response.StoreData
 
 class StoreAdapter(
-    private val stores: List<StoreData>,
+    private val stores: MutableList<StoreData>,
     private val onUpdateClick: (StoreData) -> Unit,
     private val onDeleteClick: (StoreData) -> Unit
 ) : RecyclerView.Adapter<StoreAdapter.StoreViewHolder>() {
@@ -36,4 +36,10 @@ class StoreAdapter(
     }
 
     override fun getItemCount(): Int = stores.size
+
+    // Fungsi tambahan untuk menambah store baru dan notify adapter
+    fun addStore(store: StoreData) {
+        stores.add(0, store)
+        notifyItemInserted(0)
+    }
 }

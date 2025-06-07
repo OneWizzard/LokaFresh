@@ -18,6 +18,8 @@ ktorClientAndroid = "2.3.9"
 ktorClientContentNegotiation = "2.3.9"
 ktorSerializationKotlinxJson = "2.3.9"
 kotlinxSerializationJson = "1.6.2"
+lifecycleLivedataKtx = "2.9.0"
+lifecycleLivedataKtxVersion = "2.9.0"
 lifecycleRuntimeKtx = "2.6.1"
 activityCompose = "1.8.0"
 composeBom = "2024.09.00"
@@ -32,6 +34,7 @@ playServicesMlkitBarcodeScanning = "18.3.1"
 playServicesMlkitDocumentScanner = "16.0.0-beta1"
 retrofit = "2.11.0"
 retrofitVersion = "2.11.0)"
+roomRuntime = "2.7.1"
 
 
 [libraries]
@@ -43,6 +46,10 @@ androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", versi
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraCore" }
 androidx-camera-view-v130 = { module = "androidx.camera:camera-view", version.ref = "cameraView" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-lifecycle-livedata-ktx = { module = "androidx.lifecyc`e:lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 converter-gson-v2110 = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGsonVersion" }
@@ -67,6 +74,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorClientContentNegotiation" }
 ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktorClientAndroid" }
+lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtxVersion" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }

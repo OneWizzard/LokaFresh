@@ -63,6 +63,7 @@ data class StoreData(
     @SerializedName("id")
     val id: Int,
     val nama: String,
+    val alamat: String,
     val link: String
 
 )
@@ -88,7 +89,7 @@ data class ItemData(
     val name: String,
     val quantity: Double,
     val total_price: Int,
-    val weight: Int,
+    val weight: Double,
     val unit_price: Int,
     val unit_metrics: String
 )
@@ -106,12 +107,25 @@ data class ListItem(
     val description: String,
     val isChecked: Boolean,
     val orderId: String
+
 )
 data class OrderItemDetail(
     val name: String,
     val quantity: Int
 )
+data class CariStoreResponse(
+    val store_name: String,
+    val formatted_address: String,
+    val latitude: Double,
+    val longitude: Double,
+    val maps_link: String
+)
 
+data class CreateStoreRequest(
+    val store_name: String,
+    val latitude: Double,
+    val longitude: Double
+)
 
 
 
