@@ -9,20 +9,26 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Order Number"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"/>
 
     <TextView
         android:id="@+id/tvCustomerName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Customer Name"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:paddingBottom="6dp"
+        android:paddingTop="6dp"/>"/>
 
-    <Spinner
-        android:id="@+id/spinnerSigned"
-        android:layout_width="match_parent"
+    <CheckBox
+        android:id="@+id/checkboxSigned"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:entries="@array/signed_options" />
+        android:text="Sudah ditanda tangani"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"/>
 
     <!-- HEADER KOLOM -->
     <LinearLayout
@@ -89,5 +95,6 @@
         android:id="@+id/btnSubmit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Submit Retur"/>
+        android:text="Submit Retur"
+        android:padding="16dp"/>
 </LinearLayout>

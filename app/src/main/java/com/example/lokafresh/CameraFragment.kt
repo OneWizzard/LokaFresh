@@ -2,6 +2,7 @@ package com.example.lokafresh
 
 import android.app.Activity.RESULT_OK
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -139,15 +140,12 @@ class CameraFragment : Fragment() {
                     loadingDialog.dismiss()
                     if (response.isSuccessful) {
                         val responseBody = response.body()?.string()
-                        val returFragment = ReturFragment().apply {
-                            arguments = Bundle().apply {
-                                putString("scan_response", responseBody)
-                            }
+                        val intent = Intent(requireContext(), ReturActivity::class.java).apply {
+                            putExtra("scan_response", responseBody)
                         }
-                        parentFragmentManager.beginTransaction()
-                            .replace(R.id.fragment_container, returFragment)
-                            .commit()
+                        startActivity(intent)
                         Log.d("DocumentScanner", "Scan uploaded successfully. Response: $responseBody")
+
                     } else {
                         Log.e("DocumentScanner", "Failed to upload scan: ${response.errorBody()?.string()}")
                         Log.e("DocumentScanner", "Response Code: ${response.code()}")

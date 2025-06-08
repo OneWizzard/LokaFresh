@@ -48,6 +48,9 @@
             android:name=".Register"
             android:exported="false" />
         <activity
+            android:name=".ReturActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />

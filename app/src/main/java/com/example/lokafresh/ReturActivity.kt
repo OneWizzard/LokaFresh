@@ -1,44 +1,41 @@
 package com.example.lokafresh
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.lokafresh.databinding.FragmentReturBinding
 import com.example.lokafresh.retrofit.ApiConfig
 import org.json.JSONObject
 import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
-class ReturFragment : Fragment() {
+class ReturActivity : AppCompatActivity() {
 
     private lateinit var binding: FragmentReturBinding
     private lateinit var adapter: ReturAdapter
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        binding = FragmentReturBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = FragmentReturBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val responseJson = arguments?.getString("scan_response")
+        val responseJson = intent.getStringExtra("scan_response")
         if (responseJson == null) {
-            Toast.makeText(requireContext(), "No data received", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "No data received", Toast.LENGTH_SHORT).show()
+            finish()
             return
         }
 
-        (activity as? MainActivity)?.hideNavigationElements()
-
-        val sharedPreferences = requireContext().getSharedPreferences("user_session", AppCompatActivity.MODE_PRIVATE)
+        val sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE)
         val username = sharedPreferences.getString("username", "") ?: ""
 
         val itemList = parseScanResponse(responseJson, username)
         adapter = ReturAdapter(itemList)
-        binding.rvRetur.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvRetur.layoutManager = LinearLayoutManager(this)
         binding.rvRetur.adapter = adapter
 
         binding.btnSubmit.setOnClickListener {
@@ -61,7 +58,7 @@ class ReturFragment : Fragment() {
             // Set teks ke UI
             binding.tvOrderNumber.text = "Order Number : $orderNumber"
             binding.tvCustomerName.text = "Customer : $customerName"
-            binding.spinnerSigned.setSelection(if (isSigned) 1 else 0)
+            binding.checkboxSigned.isChecked = isSigned
 
             for (i in 0 until itemsArray.length()) {
                 val item = itemsArray.getJSONObject(i)
@@ -91,35 +88,24 @@ class ReturFragment : Fragment() {
     private fun sendReturDataToBackend(items: List<ReturItem>) {
         val apiService = ApiConfig.getApiService()
 
-        apiService.addRetur(items).enqueue(object : retrofit2.Callback<ReturResponse> {
-            override fun onResponse(call: Call<ReturResponse>, response: retrofit2.Response<ReturResponse>) {
+        apiService.addRetur(items).enqueue(object : Callback<ReturResponse> {
+            override fun onResponse(call: Call<ReturResponse>, response: Response<ReturResponse>) {
                 if (response.isSuccessful) {
                     val body = response.body()
-                    if (body != null) {
-                        Toast.makeText(requireContext(), body.message, Toast.LENGTH_SHORT).show()
-                        Log.d("Retur", "Success: ${body.message}")
-                    } else {
-                        Toast.makeText(requireContext(), "Return sent, but no message", Toast.LENGTH_SHORT).show()
-                        Log.d("Retur", "Success: empty body")
-                    }
-                    moveToOrderFragment()
+                    Toast.makeText(this@ReturActivity, body?.message ?: "Success", Toast.LENGTH_SHORT).show()
+
+                    val intent = Intent(this@ReturActivity, MainActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                    startActivity(intent)
+                    finish()
                 } else {
-                    val errorBody = response.errorBody()?.string()
-                    Toast.makeText(requireContext(), "Failed: $errorBody", Toast.LENGTH_SHORT).show()
-                    Log.e("Retur", "Error: $errorBody")
+                    Toast.makeText(this@ReturActivity, "Failed to submit", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<ReturResponse>, t: Throwable) {
-                Toast.makeText(requireContext(), "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
-                Log.e("Retur", "Network error", t)
+                Toast.makeText(this@ReturActivity, "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
-    }
-
-    private fun moveToOrderFragment() {
-        parentFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, OrderFragment()) // Ganti fragment_container sesuai ID container kamu
-            .commit()
     }
 }
