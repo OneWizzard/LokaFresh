@@ -204,7 +204,6 @@ class OrderFragment : Fragment(), OrderItemAdapter.OnItemClickListener {
                 .setMessage("Apakah kamu ingin membatalkan penandaan \"${item.title}\"?")
                 .setPositiveButton("Ya") { _, _ ->
                     item.isChecked = false
-                    item.description = "Status: Belum dikirim"
                     adapter.notifyItemChanged(position)
                     updateOrderCountsInPrefs()
                     updateDeliveryStatusToBackend(orderNumber, username, destination, 0)
@@ -217,7 +216,6 @@ class OrderFragment : Fragment(), OrderItemAdapter.OnItemClickListener {
                 .setMessage("Apakah kamu ingin menandai \"${item.title}\" sebagai selesai?")
                 .setPositiveButton("Ya") { _, _ ->
                     item.isChecked = true
-                    item.description = "Status: Sudah dikirim"
                     adapter.notifyItemChanged(position)
                     updateOrderCountsInPrefs()
                     updateDeliveryStatusToBackend(orderNumber, username, destination, 1)

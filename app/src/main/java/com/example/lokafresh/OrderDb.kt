@@ -8,11 +8,20 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.ArrayAdapter
+import android.widget.EditText
+import android.widget.Spinner
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.lokafresh.response.*
+import com.example.lokafresh.response.AddItemRequest
+import com.example.lokafresh.response.CreateDoRequest
+import com.example.lokafresh.response.DoData
+import com.example.lokafresh.response.GenericResponse
+import com.example.lokafresh.response.StoreData
+import com.example.lokafresh.response.User
+import com.example.lokafresh.response.itemsData
 import com.example.lokafresh.retrofit.ApiConfig
 import com.example.lokafresh.retrofit.ApiService
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -332,7 +341,7 @@ class OrderDb : Fragment() {
                 progressDialog.setCancelable(false)
                 progressDialog.show()
 
-                apiService.deleteDo(order.order_id).enqueue(object : Callback<GenericResponse> {
+                apiService.deleteDo(order.order_number).enqueue(object : Callback<GenericResponse> {
                     override fun onResponse(call: Call<GenericResponse>, response: Response<GenericResponse>) {
                         progressDialog.dismiss()
                         Log.d("OrderDb", "deleteDo response code: ${response.code()}")

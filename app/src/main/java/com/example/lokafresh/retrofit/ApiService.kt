@@ -77,7 +77,7 @@ interface ApiService {
     fun createDo(@Body request: CreateDoRequest): Call<GenericResponse>
 
     @DELETE("webhook/delete-do")
-    fun deleteDo(@Query("order_id") orderId: String): Call<GenericResponse>
+    fun deleteDo(@Query("order_number") ordernumber: String): Call<GenericResponse>
 
     @PUT("webhook/update-do")
     fun updateDo(@Body request: UpdateDoRequest): Call<UpdateDoResponse>
