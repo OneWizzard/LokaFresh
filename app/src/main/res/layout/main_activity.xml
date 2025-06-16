@@ -58,11 +58,11 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="100dp"
         android:contentDescription="Chatbot"
-        android:src="@drawable/tanyaloka"
+        android:src="@drawable/imaslaptop"
         app:backgroundTint="@color/green"
         app:elevation="10dp"
         app:fabSize="normal"
-        app:maxImageSize="60dp"
+        app:maxImageSize="50dp"
         app:useCompatPadding="true"
         app:tint="@null"
         android:gravity="center" />
