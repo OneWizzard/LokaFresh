@@ -213,7 +213,7 @@
         app:backgroundTint="@color/red"
         app:elevation="10dp"
         app:fabSize="normal"
-        app:maxImageSize="35dp"
+        app:maxImageSize="36dp"
         app:useCompatPadding="true"
         app:tint="@color/white"
         android:gravity="center"
